@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🍗 Roast</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;900&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0e0a06;
+      background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(255,80,0,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(255,160,0,0.03) 0%, transparent 50%);
+      color: #f0e6d0;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-family: 'Bangers', cursive;
+      font-size: 5rem;
+      letter-spacing: 10px;
+      color: #ff6a00;
+      text-shadow: 0 0 40px rgba(255,106,0,0.5), 0 4px 0 #8b2500;
+      margin-bottom: 4px;
+      line-height: 1;
+    }
+
+    .title-chicken {
+      display: block;
+      font-size: 2.5rem;
+      margin-bottom: -10px;
+      animation: floatchicken 2s ease-in-out infinite;
+    }
+
+    @keyframes floatchicken {
+      0%,100% { transform: translateY(0) rotate(-5deg); }
+      50% { transform: translateY(-8px) rotate(5deg); }
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #6b4f30;
+      margin-bottom: 40px;
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .input-section {
+      max-width: 700px;
+      margin: 0 auto 40px;
+    }
+
+    textarea, input[type=text] {
+      width: 100%;
+      background: #1a1008;
+      border: 1px solid #3a2510;
+      border-radius: 12px;
+      color: #f0e6d0;
+      font-size: 1rem;
+      padding: 14px 16px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    textarea { resize: vertical; min-height: 90px; }
+    input[type=text] { margin-top: 10px; }
+
+    textarea:focus, input[type=text]:focus { border-color: #ff6a00; box-shadow: 0 0 0 2px rgba(255,106,0,0.15); }
+    textarea::placeholder, input::placeholder { color: #4a3520; }
+
+    button {
+      margin-top: 12px;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #ff6a00, #ff3d00);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Bangers', cursive;
+      font-size: 1.4rem;
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(255,80,0,0.3);
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(255,80,0,0.5); }
+    button:disabled { background: #2a1a0a; cursor: not-allowed; color: #4a3520; box-shadow: none; transform: none; }
+
+    .section { max-width: 1100px; margin: 0 auto 40px; display: none; }
+
+    .section-title {
+      font-family: 'Bangers', cursive;
+      font-size: 1rem;
+      letter-spacing: 4px;
+      color: #6b4f30;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    /* Health bar */
+    .health-wrap { max-width: 700px; margin: 0 auto 40px; display: none; }
+    .health-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.8rem; color: #6b4f30; letter-spacing: 2px; text-transform: uppercase; font-family: 'Bangers', cursive; }
+    .health-bg { background: #1a1008; border-radius: 50px; height: 28px; overflow: hidden; border: 1px solid #3a2510; }
+    .health-fill {
+      height: 100%;
+      border-radius: 50px;
+      transition: width 1s ease, background 1s ease;
+      display: flex; align-items: center; justify-content: flex-end;
+      padding-right: 12px;
+      font-weight: 700; font-size: 0.85rem;
+    }
+
+    /* Persona cards */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: #140d05;
+      border: 1px solid #2a1a08;
+      border-radius: 14px;
+      padding: 18px;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .card.visible { opacity: 1; transform: translateY(0); }
+    .card:hover { border-color: #ff6a0044; }
+
+    .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .card-emoji { font-size: 1.6rem; }
+    .card-name { font-weight: 700; font-size: 1rem; color: #f0e6d0; }
+    .card-role { color: #6b4f30; font-size: 0.75rem; }
+    .card-model { font-size: 0.6rem; color: #3a2510; margin-top: 2px; }
+    .card-score { margin-left: auto; font-size: 1.3rem; font-weight: 900; font-family: 'Bangers', cursive; }
+
+    .lbl { font-size: 0.65rem; color: #4a3020; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; margin-bottom: 3px; }
+    .val { font-size: 0.85rem; color: #c0a880; line-height: 1.5; }
+
+    /* Debate */
+    .debate-thread { display: flex; flex-direction: column; gap: 12px; max-width: 800px; margin: 0 auto; }
+
+    .bubble {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .bubble.visible { opacity: 1; transform: translateY(0); }
+    .bubble.support { align-self: flex-end; background: #0d1a0a; border: 1px solid #1a3a12; }
+    .bubble.skeptic { align-self: flex-start; background: #1a0d05; border: 1px solid #3a1a08; }
+
+    .bubble-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .bubble-name { font-weight: 700; font-size: 0.85rem; color: #f0e6d0; }
+    .bubble-role { font-size: 0.7rem; color: #6b4f30; }
+    .bubble-score { margin-left: auto; font-size: 0.75rem; font-weight: 700; font-family: 'Bangers', cursive; }
+    .bubble-model { font-size: 0.6rem; color: #3a2510; }
+    .bubble-text { font-size: 0.9rem; color: #c0a880; line-height: 1.5; }
+
+    .round-label {
+      text-align: center;
+      font-family: 'Bangers', cursive;
+      font-size: 0.8rem;
+      color: #3a2510;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin: 8px 0 4px;
+    }
+
+    /* Judge */
+    .judge-card {
+      background: #140d05;
+      border: 1px solid #3a2510;
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 700px;
+      margin: 0 auto;
+      opacity: 0;
+      transition: opacity 0.6s;
+    }
+    .judge-card.visible { opacity: 1; }
+
+    .judge-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .judge-emoji { font-size: 2rem; }
+    .judge-title { font-family: 'Bangers', cursive; font-size: 1.4rem; letter-spacing: 2px; color: #ff6a00; }
+    .judge-subtitle { font-size: 0.75rem; color: #4a3020; }
+
+    .criteria-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+
+    .criterion { display: flex; flex-direction: column; gap: 4px; }
+    .criterion-top { display: flex; justify-content: space-between; align-items: center; }
+    .criterion-name { font-size: 0.75rem; color: #6b4f30; text-transform: uppercase; letter-spacing: 1px; }
+    .criterion-score { font-size: 0.9rem; font-weight: 700; font-family: 'Bangers', cursive; }
+    .criterion-bar-bg { background: #1a1008; border-radius: 50px; height: 6px; }
+    .criterion-bar-fill { height: 100%; border-radius: 50px; transition: width 1s ease; }
+    .criterion-comment { font-size: 0.8rem; color: #6b4f30; }
+
+    .judge-total {
+      text-align: center;
+      margin: 20px 0;
+      padding: 16px;
+      background: #0e0a06;
+      border-radius: 12px;
+      border: 1px solid #2a1a08;
+    }
+    .judge-total-num { font-family: 'Bangers', cursive; font-size: 3rem; }
+    .judge-total-label { font-size: 0.7rem; color: #4a3020; letter-spacing: 3px; text-transform: uppercase; }
+
+    .verdict-badge {
+      text-align: center;
+      font-family: 'Bangers', cursive;
+      font-size: 1.6rem;
+      letter-spacing: 4px;
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+    .verdict-fund { background: #0a1a08; color: #44dd66; border: 1px solid #44dd6644; }
+    .verdict-work { background: #1a1208; color: #ffaa00; border: 1px solid #ffaa0044; }
+    .verdict-kill { background: #1a0808; color: #ff3300; border: 1px solid #ff330044; }
+
+    .judge-summary { font-size: 0.9rem; color: #8a6a40; line-height: 1.6; text-align: center; }
+
+    .loading {
+      text-align: center;
+      color: #4a3020;
+      font-size: 0.9rem;
+      padding: 40px;
+      display: none;
+    }
+    .loading-step { color: #ff6a00; margin-top: 8px; font-size: 0.8rem; font-family: 'Bangers', cursive; letter-spacing: 2px; }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .pulsing { animation: pulse 1.5s infinite; }
+
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(8px)} }
+    @keyframes explode { 0%{transform:scale(1)} 30%{transform:scale(1.4)} 60%{transform:scale(0.8) rotate(20deg)} 100%{transform:scale(1.2) rotate(-10deg)} }
+    @keyframes glow { 0%,100%{filter:drop-shadow(0 0 20px #ffaa00)} 50%{filter:drop-shadow(0 0 50px #ff6600)} }
+  </style>
+</head>
+<body>
+
+  <h1><span class="title-chicken">🍗</span>ROAST</h1>
+  <p class="subtitle">Throw your idea on the grill. See if it survives.</p>
+
+  <div class="input-section">
+    <textarea id="idea" placeholder="Describe your product idea... (min 140 characters)" oninput="updateCharCount()"></textarea>
+    <div id="charCount" style="text-align:right;font-size:0.75rem;color:#4a3020;margin-top:4px;">0 / 140</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
+      <label style="color:#6b4f30;font-size:0.85rem;white-space:nowrap;">📅 Simulate</label>
+      <input id="days" type="number" min="1" max="90" value="30" style="width:80px;text-align:center;"/>
+      <label style="color:#6b4f30;font-size:0.85rem;">days of usage</label>
+    </div>
+    <button id="btn" onclick="startRoast()">🔥 THROW IT ON THE GRILL</button>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="pulsing" style="font-size:3rem;">🍗</div>
+    <div style="margin-top:12px;color:#6b4f30;letter-spacing:2px;font-family:'Bangers',cursive;">HEATING UP THE GRILL...</div>
+    <div class="loading-step" id="loadingStep"></div>
+  </div>
+
+
+  <div class="section" id="panelSection">
+    <div class="section-title">🧑‍🍳 The Tasters</div>
+    <div class="cards-grid" id="cardsGrid"></div>
+  </div>
+
+  <div class="section" id="chartSection">
+    <div class="section-title">📊 Satisfaction Over Time</div>
+    <div style="max-width:700px;margin:0 auto;background:#140d05;border:1px solid #2a1a08;border-radius:14px;padding:20px;">
+      <canvas id="satisfactionChart"></canvas>
+    </div>
+  </div>
+
+  <div class="section" id="debateSection">
+    <div class="section-title">🔥 The Roast</div>
+    <div class="debate-thread" id="debateThread"></div>
+  </div>
+
+  <div class="section" id="judgeSection">
+    <div class="section-title">⚖️ The Head Chef</div>
+    <div class="judge-card" id="judgeCard"></div>
+  </div>
+
+  <!-- Dramatic popup -->
+  <div id="overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:1000;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;" onclick="closePopup()">
+    <div id="popupContent" style="text-align:center;max-width:600px;padding:40px;transform:scale(0.5);opacity:0;transition:transform 0.5s cubic-bezier(0.175,0.885,0.32,1.275),opacity 0.4s;">
+      <div id="chickenDisplay" style="font-size:8rem;margin-bottom:20px;display:inline-block;"></div>
+      <div id="popupVerdict" style="font-size:1.8rem;font-weight:900;letter-spacing:4px;margin-bottom:20px;"></div>
+      <div id="popupRoast" style="font-size:1.1rem;color:#ccc;line-height:1.6;margin-bottom:30px;font-style:italic;"></div>
+      <div id="popupScore" style="font-size:3rem;font-weight:900;margin-bottom:10px;"></div>
+      <div style="font-size:0.7rem;color:#333;letter-spacing:2px;">TAP ANYWHERE TO CONTINUE</div>
+    </div>
+  </div>
+
+  <script>
+    function hc(p) {
+      if (p >= 70) return '#00cc44';
+      if (p >= 40) return '#ffaa00';
+      return '#cc0000';
+    }
+
+    function setHealth(pct) {}
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    function updateCharCount() {
+      const len = document.getElementById('idea').value.trim().length;
+      const el = document.getElementById('charCount');
+      el.textContent = `${len} / 140`;
+      el.style.color = len >= 140 ? '#00cc44' : len > 100 ? '#ffaa00' : '#4a3020';
+    }
+
+    async function startRoast() {
+      const idea = document.getElementById('idea').value.trim();
+      const audience = document.getElementById('audience').value.trim();
+      if (!idea) return;
+      if (idea.length < 140) {
+        document.getElementById('charCount').style.color = '#cc0000';
+        document.getElementById('charCount').textContent = `${idea.length} / 140 — need ${140 - idea.length} more characters`;
+        return;
+      }
+
+      const btn = document.getElementById('btn');
+      btn.disabled = true;
+      btn.textContent = 'ROASTING...';
+
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('loadingStep').textContent = '🧑‍🍳 Choosing your tasters...';
+      document.getElementById('panelSection').style.display = 'none';
+      document.getElementById('chartSection').style.display = 'none';
+      document.getElementById('debateSection').style.display = 'none';
+      document.getElementById('judgeSection').style.display = 'none';
+      document.getElementById('cardsGrid').innerHTML = '';
+      document.getElementById('debateThread').innerHTML = '';
+      document.getElementById('judgeCard').innerHTML = '';
+      document.getElementById('judgeCard').classList.remove('visible');
+
+      setTimeout(() => { document.getElementById('loadingStep').textContent = '👀 First bites...'; }, 3000);
+      setTimeout(() => { document.getElementById('loadingStep').textContent = '🔥 Arguments getting spicy...'; }, 7000);
+      setTimeout(() => { document.getElementById('loadingStep').textContent = '⚖️ Head chef is deliberating...'; }, 20000);
+
+      let data;
+      try {
+        const res = await fetch('/roast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idea, days: parseInt(document.getElementById('days').value) || 30 })
+        });
+        data = await res.json();
+      } catch (e) {
+        document.getElementById('loading').innerHTML = 'Something went wrong. Try again.';
+        btn.disabled = false;
+        btn.textContent = '🔥 ROAST MY IDEA';
+        return;
+      }
+
+      document.getElementById('loading').style.display = 'none';
+      await renderAll(data);
+
+      btn.disabled = false;
+      btn.textContent = '🔥 ROAST MY IDEA';
+    }
+
+    async function renderAll(data) {
+      // Health bar
+
+      // Panel
+      document.getElementById('panelSection').style.display = 'block';
+      const grid = document.getElementById('cardsGrid');
+      for (let i = 0; i < data.personas.length; i++) {
+        const p = data.personas[i];
+        const r = p.reaction;
+        const color = hc(r.score);
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="card-head">
+            <span class="card-emoji">${p.emoji}</span>
+            <div>
+              <div class="card-name">${p.name}</div>
+              <div class="card-role">${p.role}</div>
+              <div class="card-role" style="color:#ff6a0088;font-style:italic;">${p.personality || ''}</div>
+              <div class="card-model">${p.model}</div>
+            </div>
+            <div class="card-score" style="color:${color}">${r.score}</div>
+          </div>
+          <div class="lbl">📖 Their story</div>
+          <div class="val">${r.story}</div>
+          <div class="lbl">✅ Best moment</div>
+          <div class="val">${r.best_moment}</div>
+          <div class="lbl">💀 Worst moment</div>
+          <div class="val">${r.worst_moment}</div>
+          <div class="lbl">📅 Usage pattern</div>
+          <div class="val">${r.usage_pattern}</div>
+          <div class="lbl">💸 Would pay</div>
+          <div class="val">${r.would_pay}</div>
+        `;
+        grid.appendChild(card);
+        await delay(120);
+        card.classList.add('visible');
+      }
+
+      await delay(600);
+
+      // Chart
+      document.getElementById('chartSection').style.display = 'block';
+      const days = data.days || 30;
+      const weeks = Math.ceil(days / 7);
+      const labels = Array.from({length: weeks}, (_, i) => `Week ${i+1}`);
+      const colors = ['#ff6a00','#00cc44','#ffaa00','#aa44ff'];
+      const datasets = data.personas.map((p, i) => {
+        const scores = p.reaction.weekly_scores || [p.reaction.score];
+        return {
+          label: p.name,
+          data: scores,
+          borderColor: colors[i % colors.length],
+          backgroundColor: colors[i % colors.length] + '22',
+          tension: 0.4,
+          fill: false,
+          pointRadius: 4
+        };
+      });
+
+      if (window._satisfactionChart) window._satisfactionChart.destroy();
+      window._satisfactionChart = new Chart(document.getElementById('satisfactionChart'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: '#c0a880', font: { family: 'Inter' } } }
+          },
+          scales: {
+            x: { ticks: { color: '#6b4f30' }, grid: { color: '#1a1008' } },
+            y: { min: 0, max: 100, ticks: { color: '#6b4f30' }, grid: { color: '#1a1008' } }
+          }
+        }
+      });
+
+      await delay(400);
+
+      // Debate
+      document.getElementById('debateSection').style.display = 'block';
+      const thread = document.getElementById('debateThread');
+      let currentRound = 0;
+
+      if (data.all_hate) {
+        const msg = document.createElement('div');
+        msg.style.cssText = 'text-align:center;padding:40px;font-family:Bangers,cursive;font-size:2rem;letter-spacing:4px;color:#cc0000;';
+        msg.textContent = '💀 NOBODY DEFENDED IT. STRAIGHT TO THE JUDGE.';
+        thread.appendChild(msg);
+      }
+
+      for (const msg of data.debate) {
+        if (msg.round !== currentRound) {
+          currentRound = msg.round;
+          const rl = document.createElement('div');
+          rl.className = 'round-label';
+          rl.textContent = `— Round ${currentRound} —`;
+          thread.appendChild(rl);
+
+          const snap = (data.round_snapshots || []).find(r => r.round === currentRound);
+          if (snap) {
+            setHealth(snap.health);
+            if (snap.lives) {
+              Object.entries(snap.lives).forEach(([name, life]) => {
+                const el = document.getElementById('life-' + name.replace(/\s/g,''));
+                if (el) el.textContent = '🍗'.repeat(Math.max(0,life)) + '🦴'.repeat(Math.max(0,10-life));
+              });
+            }
+          }
+        }
+
+        const bubble = document.createElement('div');
+        bubble.className = `bubble ${msg.side}`;
+        const dmg = msg.damage || 1;
+        const dmgLabel = dmg === 3 ? '💥 CRITICAL HIT' : dmg === 2 ? '🔥 SOLID BURN' : '😏 mild jab';
+        const dmgColor = dmg === 3 ? '#ff2200' : dmg === 2 ? '#ff6a00' : '#888';
+        const livesAfter = msg.lives_after || {};
+        const targetLives = typeof livesAfter[msg.target] === 'number' ? livesAfter[msg.target] : 10;
+        const lifeChicken = '🍗'.repeat(Math.max(0, targetLives)) + '🦴'.repeat(Math.max(0, 10 - targetLives));
+        bubble.innerHTML = `
+          <div class="bubble-head">
+            <span>${msg.emoji}</span>
+            <div>
+              <div class="bubble-name">${msg.speaker}</div>
+              <div class="bubble-role">${msg.role}</div>
+              <div class="bubble-model">${msg.model}</div>
+            </div>
+            <div style="margin-left:auto;text-align:right;">
+              <div style="font-size:0.7rem;color:${dmgColor};font-family:'Bangers',cursive;letter-spacing:1px;">${dmgLabel}</div>
+              <div style="font-size:0.75rem;color:#3a2510;">→ ${msg.target}: -${dmg} life</div>
+            </div>
+          </div>
+          <div class="bubble-text">${msg.text}</div>
+          <div style="margin-top:8px;font-size:0.75rem;color:#3a2510;">${msg.target} has ${targetLives} left: ${lifeChicken}</div>
+        `;
+        thread.appendChild(bubble);
+        await delay(300);
+        bubble.classList.add('visible');
+        bubble.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      setHealth(data.final_health);
+      await delay(800);
+
+      // Judge
+      document.getElementById('judgeSection').style.display = 'block';
+      const j = data.judgment;
+      const criteria = [
+        { key: 'problem_clarity', label: 'Problem Clarity' },
+        { key: 'market_size', label: 'Market Size' },
+        { key: 'feasibility', label: 'Feasibility' },
+        { key: 'differentiation', label: 'Differentiation' },
+        { key: 'revenue_potential', label: 'Revenue Potential' },
+      ];
+
+      const verdictClass = j.verdict === 'Fund it' ? 'verdict-fund' : j.verdict === 'Needs work' ? 'verdict-work' : 'verdict-kill';
+      const verdictEmoji = j.verdict === 'Fund it' ? '✅' : j.verdict === 'Needs work' ? '⚠️' : '💀';
+
+      const criteriaHTML = criteria.map(c => {
+        const sc = j[c.key];
+        const pct = sc.score * 10;
+        return `
+          <div class="criterion">
+            <div class="criterion-top">
+              <span class="criterion-name">${c.label}</span>
+              <span class="criterion-score" style="color:${hc(pct)}">${sc.score}/10</span>
+            </div>
+            <div class="criterion-bar-bg">
+              <div class="criterion-bar-fill" style="width:${pct}%;background:${hc(pct)};"></div>
+            </div>
+            <div class="criterion-comment">${sc.comment}</div>
+          </div>`;
+      }).join('');
+
+      const card = document.getElementById('judgeCard');
+      card.innerHTML = `
+        <div class="judge-header">
+          <span class="judge-emoji">👨‍🍳</span>
+          <div>
+            <div class="judge-title">THE HEAD CHEF</div>
+            <div class="judge-subtitle">RAG-powered business evaluation</div>
+          </div>
+        </div>
+        <div class="criteria-grid">${criteriaHTML}</div>
+        <div class="judge-total">
+          <div class="judge-total-num" style="color:${hc(j.total * 2)}">${j.total}<span style="font-size:1rem;color:#444;">/50</span></div>
+          <div class="judge-total-label">TOTAL SCORE</div>
+        </div>
+        <div class="verdict-badge ${verdictClass}">${verdictEmoji} ${j.verdict.toUpperCase()}</div>
+        <div class="judge-summary">${j.summary}</div>
+      `;
+
+      await delay(200);
+      card.classList.add('visible');
+      card.scrollIntoView({ behavior: 'smooth' });
+
+      await delay(1800);
+      showPopup(j);
+    }
+
+    function showPopup(judgment) {
+      const total = judgment.total;
+      const verdict = judgment.verdict;
+      const roast = judgment.roast_comment;
+
+      const overlay = document.getElementById('overlay');
+      const content = document.getElementById('popupContent');
+      const chicken = document.getElementById('chickenDisplay');
+      const verdictEl = document.getElementById('popupVerdict');
+      const roastEl = document.getElementById('popupRoast');
+      const scoreEl = document.getElementById('popupScore');
+
+      if (verdict === 'Fund it') {
+        chicken.textContent = '🍗';
+        chicken.style.animation = 'glow 1.5s infinite, spin 4s linear infinite';
+        verdictEl.textContent = '✅ PERFECTLY COOKED';
+        verdictEl.style.color = '#00cc44';
+        scoreEl.style.color = '#00cc44';
+      } else if (verdict === 'Needs work') {
+        chicken.textContent = '🔥🍗';
+        chicken.style.animation = 'shake 0.6s infinite';
+        verdictEl.textContent = '⚠️ SLIGHTLY BURNT';
+        verdictEl.style.color = '#ffaa00';
+        scoreEl.style.color = '#ffaa00';
+      } else {
+        chicken.textContent = '💥🍗';
+        chicken.style.animation = 'explode 0.5s infinite';
+        verdictEl.textContent = '💀 BOOM ROASTED';
+        verdictEl.style.color = '#cc0000';
+        scoreEl.style.color = '#cc0000';
+      }
+
+      roastEl.textContent = `"${roast}"`;
+      scoreEl.textContent = `${total}/50`;
+
+      overlay.style.display = 'flex';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          content.style.transform = 'scale(1)';
+          content.style.opacity = '1';
+        });
+      });
+    }
+
+    function closePopup() {
+      const overlay = document.getElementById('overlay');
+      const content = document.getElementById('popupContent');
+      content.style.transform = 'scale(0.9)';
+      content.style.opacity = '0';
+      setTimeout(() => { overlay.style.display = 'none'; }, 300);
+    }
+
+    document.getElementById('idea').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && e.metaKey) startRoast();
+    });
+  </script>
+</body>
+</html>
