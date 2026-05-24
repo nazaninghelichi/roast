@@ -3,12 +3,16 @@ from groq import Groq
 import os
 import json
 import re
+import uuid
 import concurrent.futures
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = Flask(__name__)
+
+RESULTS_DIR = 'results'
+os.makedirs(RESULTS_DIR, exist_ok=True)
 
 
 def extract_json(text):
@@ -111,29 +115,32 @@ Return ONLY valid JSON:
     ]
 
 
-def simulate_usage(persona, idea, days):
-    weeks = max(1, days // 7)
+def simulate_usage(persona, idea, days=None):
     prompt = f"""You are {persona['name']}, a {persona['role']}.
 Your personality: {persona.get('personality', 'honest and direct')}
-You just used this product for {days} days: "{idea}"
+You used this product: "{idea}"
 
-Write your honest experience as a real human — funny, specific, a little messy.
-Tell a moment or two that actually happened. Could be embarrassing, weird, surprising, or mundane.
-Like a text to a friend or a brutally honest reddit review. NOT a corporate testimonial.
-Be specific to YOUR life and who you are. Make it feel real.
-
-Also give your honest satisfaction score (0-100) for each of the {weeks} weeks.
-Be realistic — maybe you loved it at first then got bored, or hated it then got hooked, or just stayed consistent.
+Simulate your realistic experience across 3 phases. Be specific, funny, human — like a reddit review or a text to a friend.
+Tell actual moments. Could be embarrassing, surprising, mundane. NOT corporate speak.
 
 Return ONLY valid JSON:
 {{
-    "story": "your {days}-day experience — funny, specific, 2-4 sentences. tell an actual moment.",
-    "best_moment": "one specific highlight from using it",
-    "worst_moment": "one specific low point or annoyance",
-    "usage_pattern": "how often you actually used it e.g. 'every morning', 'twice in week 1 then forgot'",
-    "weekly_scores": [<score week 1>, <score week 2>, ...] (exactly {weeks} integers 0-100),
-    "score": <your overall score 0 to 100>,
-    "would_pay": "how much you'd pay to keep using it or 'nothing'"
+    "week1": {{
+        "story": "your first week — what excited you, what confused you, one specific moment",
+        "score": <0-100>
+    }},
+    "month1": {{
+        "story": "after a month — did you stick with it? what habit formed or broke? one specific moment",
+        "score": <0-100>
+    }},
+    "month3": {{
+        "story": "after 3 months — still using it? abandoned it? tell the truth with a specific detail",
+        "score": <0-100>
+    }},
+    "best_moment": "one specific highlight",
+    "worst_moment": "one specific low point",
+    "would_pay": "how much you'd pay to keep using it or 'nothing'",
+    "score": <overall score 0-100>
 }}"""
 
     response = persona["client"].chat.completions.create(
@@ -141,7 +148,13 @@ Return ONLY valid JSON:
         messages=[{"role": "user", "content": prompt}],
         temperature=1.0
     )
-    return extract_json(response.choices[0].message.content.strip())
+    data = extract_json(response.choices[0].message.content.strip())
+    if 'score' not in data:
+        sub = [data.get('week1', {}).get('score', 50),
+               data.get('month1', {}).get('score', 50),
+               data.get('month3', {}).get('score', 50)]
+        data['score'] = round(sum(sub) / len(sub))
+    return data
 
 
 def debate_turn(speaker, target, idea, history, speaker_score, target_score):
@@ -186,7 +199,7 @@ Return ONLY valid JSON:
 
 
 def run_debate(personas, idea, reactions, total_exchanges=10):
-    scores = [r['score'] for r in reactions]
+    scores = [r.get('score', 50) for r in reactions]
     lives = {p['name']: 10 for p in personas}
     history = []
     round_snapshots = []
@@ -217,9 +230,9 @@ def run_debate(personas, idea, reactions, total_exchanges=10):
         target = personas[target_idx]
 
         result = debate_turn(speaker, target, idea, history, scores[speaker_idx], scores[target_idx])
-        damage = max(1, min(3, result.get('damage', 1)))
+        damage = max(1, min(3, int(result.get('damage', 1))))
         lives[target['name']] = max(0, lives[target['name']] - damage)
-        scores[speaker_idx] = result['new_score']
+        scores[speaker_idx] = int(result.get('new_score', scores[speaker_idx]))
 
         history.append({
             "round": round_num,
@@ -263,42 +276,59 @@ def judge_idea(idea, audience, history, final_scores, rubric, days, reactions):
         for r in reactions
     ])
 
-    prompt = f"""You are a savage, funny, brutally honest business judge who loves roasting bad ideas.
+    prompt = f"""You are a panel of savage, brutally honest investors evaluating a startup.
 
 EVALUATION RUBRIC:
 {rubric}
 
-PRODUCT IDEA: "{idea}"
-TARGET AUDIENCE: "{audience}"
+STARTUP IDEA: "{idea}"
 
-USER EXPERIENCE STORIES (from {days}-day simulation):
+USER SIMULATION DATA (3-month experience from real synthetic customers):
 {user_stories}
 
-DEBATE TRANSCRIPT:
+CUSTOMER DEBATE TRANSCRIPT:
 {debate_text}
 
 CUSTOMER CONSENSUS SCORE: {avg}/100
 
-Use the rubric to score this idea. Ground your evaluation in the actual user stories above — reference specific patterns you see.
-Be objective on scores. Be savage and funny in your roast_comment — specific to THIS idea, not generic startup advice.
+You've seen the user data. Now evaluate this startup like a VC who has heard 1000 pitches.
+Be grounded in the actual user stories — reference specific patterns you see.
+Be objective on scores. Be savage and specific in your roast_comment.
 
 Return ONLY valid JSON:
 {{
-    "problem_clarity": {{"score": <0-10>, "comment": "one sentence grounded in user stories"}},
+    "survival_score": <0-100, would this startup survive 1 year>,
+    "retention_score": <0-100, based on the 3-month user data>,
+    "virality_potential": <0-100, would users tell others>,
+    "problem_clarity": {{"score": <0-10>, "comment": "one sentence"}},
     "market_size": {{"score": <0-10>, "comment": "one sentence"}},
     "feasibility": {{"score": <0-10>, "comment": "one sentence"}},
     "differentiation": {{"score": <0-10>, "comment": "one sentence"}},
     "revenue_potential": {{"score": <0-10>, "comment": "one sentence grounded in willingness to pay"}},
     "total": <0-50>,
-    "verdict": "Fund it" or "Needs work" or "Kill it",
-    "summary": "2-3 sentence overall assessment based on actual user behavior",
-    "roast_comment": "savage funny roast of this specific idea, 1-2 sentences"
+    "biggest_risk": "the one thing most likely to kill this startup",
+    "strongest_advantage": "the one real thing going for it",
+    "verdict": "Survives" or "Needs work" or "Dead on arrival",
+    "summary": "2-3 sentence investor-style assessment",
+    "roast_comment": "savage funny roast specific to this startup, 1-2 sentences",
+    "prediction_confidence": <0-100, how confident you are in this verdict given data quality and market clarity>,
+    "market_analogy": "one sentence: what existing market this maps to and its dynamics",
+    "comparable_startups": [
+        {{"name": "real startup name", "outcome": "what happened and why relevant"}},
+        {{"name": "real startup name", "outcome": "what happened and why relevant"}}
+    ],
+    "improvements": [
+        "specific actionable improvement #1",
+        "specific actionable improvement #2",
+        "specific actionable improvement #3"
+    ]
 }}"""
 
     response = JUDGE_CLIENT.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.3
+        temperature=0.3,
+        max_tokens=2048
     )
     return extract_json(response.choices[0].message.content.strip())
 
@@ -312,7 +342,7 @@ def index():
 def roast():
     idea = request.json.get('idea', '').strip()
     audience = 'inferred from the product idea'
-    days = int(request.json.get('days', 30))
+    days = 90
     if not idea:
         return jsonify({"error": "No idea provided"}), 400
 
@@ -320,10 +350,10 @@ def roast():
     personas = cast_personas(idea, audience)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(simulate_usage, p, idea, days) for p in personas]
+        futures = [executor.submit(simulate_usage, p, idea) for p in personas]
         reactions = [f.result() for f in futures]
 
-    all_hate = all(r['score'] < 50 for r in reactions)
+    all_hate = all(r.get('score', 50) < 50 for r in reactions)
 
     if all_hate:
         debate_history, final_scores, final_lives, round_snapshots = [], [r['score'] for r in reactions], {p['name']: 10 for p in personas}, []
@@ -336,10 +366,13 @@ def roast():
 
     judgment = judge_idea(idea, audience, debate_history, final_scores, rubric, days, reactions)
 
-    initial_health = round(sum(r['score'] for r in reactions) / len(reactions))
+    initial_health = round(sum(r.get('score', 50) for r in reactions) / len(reactions))
     final_health = round(sum(final_scores) / len(final_scores))
 
-    return jsonify({
+    result_id = str(uuid.uuid4())[:8]
+    result = {
+        "id": result_id,
+        "idea": idea,
         "personas": [
             {
                 "name": personas[i]['name'],
@@ -360,7 +393,22 @@ def roast():
         "initial_health": initial_health,
         "final_health": final_health,
         "judgment": judgment
-    })
+    }
+
+    with open(f'{RESULTS_DIR}/{result_id}.json', 'w') as f:
+        json.dump(result, f)
+
+    return jsonify(result)
+
+
+@app.route('/result/<result_id>')
+def view_result(result_id):
+    path = f'{RESULTS_DIR}/{result_id}.json'
+    if not os.path.exists(path):
+        return "Result not found", 404
+    with open(path) as f:
+        data = json.load(f)
+    return render_template('index.html', prefill=data)
 
 
 if __name__ == '__main__':

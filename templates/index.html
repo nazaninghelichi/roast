@@ -260,16 +260,11 @@
 <body>
 
   <h1><span class="title-chicken">🍗</span>ROAST</h1>
-  <p class="subtitle">Throw your idea on the grill. See if it survives.</p>
+  <p class="subtitle">Startup Survival Simulation. Will yours make it?</p>
 
   <div class="input-section">
     <textarea id="idea" placeholder="Describe your product idea... (min 140 characters)" oninput="updateCharCount()"></textarea>
     <div id="charCount" style="text-align:right;font-size:0.75rem;color:#4a3020;margin-top:4px;">0 / 140</div>
-    <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
-      <label style="color:#6b4f30;font-size:0.85rem;white-space:nowrap;">📅 Simulate</label>
-      <input id="days" type="number" min="1" max="90" value="30" style="width:80px;text-align:center;"/>
-      <label style="color:#6b4f30;font-size:0.85rem;">days of usage</label>
-    </div>
     <button id="btn" onclick="startRoast()">🔥 THROW IT ON THE GRILL</button>
   </div>
 
@@ -281,14 +276,25 @@
 
 
   <div class="section" id="panelSection">
-    <div class="section-title">🧑‍🍳 The Tasters</div>
+    <div class="section-title">👥 The Users (3-Month Simulation)</div>
     <div class="cards-grid" id="cardsGrid"></div>
   </div>
 
   <div class="section" id="chartSection">
-    <div class="section-title">📊 Satisfaction Over Time</div>
-    <div style="max-width:700px;margin:0 auto;background:#140d05;border:1px solid #2a1a08;border-radius:14px;padding:20px;">
-      <canvas id="satisfactionChart"></canvas>
+    <div class="section-title">📊 Analytics</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1100px;margin:0 auto;">
+      <div style="background:#140d05;border:1px solid #2a1a08;border-radius:14px;padding:20px;">
+        <div style="font-size:0.7rem;color:#6b4f30;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">User Satisfaction Over Time</div>
+        <canvas id="satisfactionChart"></canvas>
+      </div>
+      <div style="background:#140d05;border:1px solid #2a1a08;border-radius:14px;padding:20px;">
+        <div style="font-size:0.7rem;color:#6b4f30;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Startup Health</div>
+        <canvas id="healthChart"></canvas>
+      </div>
+      <div style="background:#140d05;border:1px solid #2a1a08;border-radius:14px;padding:20px;grid-column:1/-1;">
+        <div style="font-size:0.7rem;color:#6b4f30;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Business Evaluation</div>
+        <canvas id="radarChart" style="max-height:300px;"></canvas>
+      </div>
     </div>
   </div>
 
@@ -298,7 +304,7 @@
   </div>
 
   <div class="section" id="judgeSection">
-    <div class="section-title">⚖️ The Head Chef</div>
+    <div class="section-title">💼 The Investor Panel</div>
     <div class="judge-card" id="judgeCard"></div>
   </div>
 
@@ -333,7 +339,6 @@
 
     async function startRoast() {
       const idea = document.getElementById('idea').value.trim();
-      const audience = document.getElementById('audience').value.trim();
       if (!idea) return;
       if (idea.length < 140) {
         document.getElementById('charCount').style.color = '#cc0000';
@@ -365,13 +370,13 @@
         const res = await fetch('/roast', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idea, days: parseInt(document.getElementById('days').value) || 30 })
+          body: JSON.stringify({ idea })
         });
         data = await res.json();
       } catch (e) {
-        document.getElementById('loading').innerHTML = 'Something went wrong. Try again.';
+        document.getElementById('loading').innerHTML = `<div style="color:#cc4400;">Error: ${e.message}</div><div style="margin-top:8px;font-size:0.75rem;color:#6b4f30;">Check the terminal for details.</div>`;
         btn.disabled = false;
-        btn.textContent = '🔥 ROAST MY IDEA';
+        btn.textContent = '🔥 THROW IT ON THE GRILL';
         return;
       }
 
@@ -405,14 +410,14 @@
             </div>
             <div class="card-score" style="color:${color}">${r.score}</div>
           </div>
-          <div class="lbl">📖 Their story</div>
-          <div class="val">${r.story}</div>
+          <div class="lbl">🔥 Week 1</div>
+          <div class="val">${r.week1?.story || '—'}</div>
+          <div class="lbl">📅 Month 1</div>
+          <div class="val">${r.month1?.story || '—'}</div>
+          <div class="lbl">💀 Month 3</div>
+          <div class="val">${r.month3?.story || '—'}</div>
           <div class="lbl">✅ Best moment</div>
           <div class="val">${r.best_moment}</div>
-          <div class="lbl">💀 Worst moment</div>
-          <div class="val">${r.worst_moment}</div>
-          <div class="lbl">📅 Usage pattern</div>
-          <div class="val">${r.usage_pattern}</div>
           <div class="lbl">💸 Would pay</div>
           <div class="val">${r.would_pay}</div>
         `;
@@ -425,12 +430,15 @@
 
       // Chart
       document.getElementById('chartSection').style.display = 'block';
-      const days = data.days || 30;
-      const weeks = Math.ceil(days / 7);
-      const labels = Array.from({length: weeks}, (_, i) => `Week ${i+1}`);
+      const labels = ['Week 1', 'Month 1', 'Month 3'];
       const colors = ['#ff6a00','#00cc44','#ffaa00','#aa44ff'];
       const datasets = data.personas.map((p, i) => {
-        const scores = p.reaction.weekly_scores || [p.reaction.score];
+        const r = p.reaction;
+        const scores = [
+          r.week1?.score ?? r.score,
+          r.month1?.score ?? r.score,
+          r.month3?.score ?? r.score
+        ];
         return {
           label: p.name,
           data: scores,
@@ -438,25 +446,28 @@
           backgroundColor: colors[i % colors.length] + '22',
           tension: 0.4,
           fill: false,
-          pointRadius: 4
+          pointRadius: 6
         };
       });
+
+      const chartDefaults = {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#c0a880', font: { family: 'Inter', size: 11 } } } },
+        scales: {
+          x: { ticks: { color: '#6b4f30' }, grid: { color: '#1a1008' } },
+          y: { min: 0, max: 100, ticks: { color: '#6b4f30' }, grid: { color: '#1a1008' } }
+        }
+      };
 
       if (window._satisfactionChart) window._satisfactionChart.destroy();
       window._satisfactionChart = new Chart(document.getElementById('satisfactionChart'), {
         type: 'line',
         data: { labels, datasets },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { labels: { color: '#c0a880', font: { family: 'Inter' } } }
-          },
-          scales: {
-            x: { ticks: { color: '#6b4f30' }, grid: { color: '#1a1008' } },
-            y: { min: 0, max: 100, ticks: { color: '#6b4f30' }, grid: { color: '#1a1008' } }
-          }
-        }
+        options: chartDefaults
       });
+
+      // Startup health bar chart (survival, retention, virality) — rendered after judge data arrives
+      window._pendingJudgment = data.judgment;
 
       await delay(400);
 
@@ -536,8 +547,8 @@
         { key: 'revenue_potential', label: 'Revenue Potential' },
       ];
 
-      const verdictClass = j.verdict === 'Fund it' ? 'verdict-fund' : j.verdict === 'Needs work' ? 'verdict-work' : 'verdict-kill';
-      const verdictEmoji = j.verdict === 'Fund it' ? '✅' : j.verdict === 'Needs work' ? '⚠️' : '💀';
+      const verdictClass = j.verdict === 'Survives' ? 'verdict-fund' : j.verdict === 'Needs work' ? 'verdict-work' : 'verdict-kill';
+      const verdictEmoji = j.verdict === 'Survives' ? '✅' : j.verdict === 'Needs work' ? '⚠️' : '💀';
 
       const criteriaHTML = criteria.map(c => {
         const sc = j[c.key];
@@ -558,24 +569,148 @@
       const card = document.getElementById('judgeCard');
       card.innerHTML = `
         <div class="judge-header">
-          <span class="judge-emoji">👨‍🍳</span>
+          <span class="judge-emoji">💼</span>
           <div>
-            <div class="judge-title">THE HEAD CHEF</div>
-            <div class="judge-subtitle">RAG-powered business evaluation</div>
+            <div class="judge-title">INVESTOR PANEL</div>
+            <div class="judge-subtitle">RAG-powered survival analysis</div>
           </div>
         </div>
         <div class="criteria-grid">${criteriaHTML}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:20px 0;">
+          <div style="background:#0e0a06;border:1px solid #2a1a08;border-radius:10px;padding:14px;text-align:center;">
+            <div style="font-family:'Bangers',cursive;font-size:1.8rem;color:${hc(j.survival_score || 50)}">${j.survival_score ?? '—'}</div>
+            <div style="font-size:0.65rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;">Survival</div>
+          </div>
+          <div style="background:#0e0a06;border:1px solid #2a1a08;border-radius:10px;padding:14px;text-align:center;">
+            <div style="font-family:'Bangers',cursive;font-size:1.8rem;color:${hc(j.retention_score || 50)}">${j.retention_score ?? '—'}</div>
+            <div style="font-size:0.65rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;">Retention</div>
+          </div>
+          <div style="background:#0e0a06;border:1px solid #2a1a08;border-radius:10px;padding:14px;text-align:center;">
+            <div style="font-family:'Bangers',cursive;font-size:1.8rem;color:${hc(j.virality_potential || 50)}">${j.virality_potential ?? '—'}</div>
+            <div style="font-size:0.65rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;">Virality</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+          <div style="background:#0a1a08;border:1px solid #1a3a12;border-radius:10px;padding:12px;">
+            <div style="font-size:0.65rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">💪 Strongest advantage</div>
+            <div style="font-size:0.85rem;color:#c0a880;">${j.strongest_advantage || '—'}</div>
+          </div>
+          <div style="background:#1a0808;border:1px solid #3a1212;border-radius:10px;padding:12px;">
+            <div style="font-size:0.65rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">☠️ Biggest risk</div>
+            <div style="font-size:0.85rem;color:#c0a880;">${j.biggest_risk || '—'}</div>
+          </div>
+        </div>
         <div class="judge-total">
           <div class="judge-total-num" style="color:${hc(j.total * 2)}">${j.total}<span style="font-size:1rem;color:#444;">/50</span></div>
-          <div class="judge-total-label">TOTAL SCORE</div>
+          <div class="judge-total-label">INVESTOR SCORE</div>
         </div>
-        <div class="verdict-badge ${verdictClass}">${verdictEmoji} ${j.verdict.toUpperCase()}</div>
+        <div class="verdict-badge ${verdictClass}" onclick="toggleImprovements()" style="cursor:pointer;" title="Click for improvement ideas">
+          ${verdictEmoji} ${j.verdict.toUpperCase()} <span style="font-size:0.8rem;opacity:0.6;">▼ tap for ideas</span>
+        </div>
+        <div id="improvementsBox" style="display:none;margin-bottom:16px;padding:16px;background:#0e0a06;border:1px solid #2a1a08;border-radius:12px;">
+          <div style="font-size:0.7rem;color:#6b4f30;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">💡 How to improve this</div>
+          ${(j.improvements || []).map(imp => `<div style="font-size:0.88rem;color:#c0a880;padding:6px 0;border-bottom:1px solid #1a1008;">→ ${imp}</div>`).join('')}
+        </div>
         <div class="judge-summary">${j.summary}</div>
+
+        ${j.prediction_confidence != null ? `
+        <div style="margin-top:20px;padding:16px;background:#0e0a06;border:1px solid #2a1a08;border-radius:12px;">
+          <div style="font-size:0.65rem;color:#6b4f30;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">🔬 How grounded is this?</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-size:0.75rem;color:#6b4f30;">Prediction confidence</span>
+                <span style="font-size:0.85rem;font-weight:700;font-family:'Bangers',cursive;color:${hc(j.prediction_confidence)}">${j.prediction_confidence}%</span>
+              </div>
+              <div style="background:#1a1008;border-radius:50px;height:6px;">
+                <div style="width:${j.prediction_confidence}%;height:100%;border-radius:50px;background:${hc(j.prediction_confidence)};transition:width 1s ease;"></div>
+              </div>
+            </div>
+          </div>
+          ${j.market_analogy ? `
+          <div style="margin-bottom:12px;">
+            <div style="font-size:0.65rem;color:#6b4f30;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">📍 Market category</div>
+            <div style="font-size:0.82rem;color:#8a6a40;">${j.market_analogy}</div>
+          </div>` : ''}
+          ${(j.comparable_startups || []).length ? `
+          <div>
+            <div style="font-size:0.65rem;color:#6b4f30;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">🏢 Comparable startups</div>
+            ${(j.comparable_startups || []).map(s => `
+              <div style="padding:8px 0;border-top:1px solid #1a1008;">
+                <div style="font-size:0.8rem;font-weight:700;color:#c0a880;">${s.name}</div>
+                <div style="font-size:0.78rem;color:#6b4f30;margin-top:2px;">${s.outcome}</div>
+              </div>
+            `).join('')}
+          </div>` : ''}
+        </div>` : ''}
+
+        <button onclick="shareResult('${data.id}')" style="margin-top:16px;padding:10px 20px;width:auto;font-size:0.9rem;letter-spacing:1px;background:linear-gradient(135deg,#1a1008,#2a1a08);border:1px solid #3a2510;">
+          🔗 Copy shareable link
+        </button>
       `;
 
       await delay(200);
       card.classList.add('visible');
       card.scrollIntoView({ behavior: 'smooth' });
+
+      // Health bar chart
+      if (window._healthChart) window._healthChart.destroy();
+      window._healthChart = new Chart(document.getElementById('healthChart'), {
+        type: 'bar',
+        data: {
+          labels: ['Survival', 'Retention', 'Virality'],
+          datasets: [{
+            data: [j.survival_score || 0, j.retention_score || 0, j.virality_potential || 0],
+            backgroundColor: ['#ff6a0099', '#00cc4499', '#ffaa0099'],
+            borderColor: ['#ff6a00', '#00cc44', '#ffaa00'],
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#6b4f30' }, grid: { color: '#1a1008' } },
+            y: { min: 0, max: 100, ticks: { color: '#6b4f30' }, grid: { color: '#1a1008' } }
+          }
+        }
+      });
+
+      // Radar chart for 5 business criteria
+      if (window._radarChart) window._radarChart.destroy();
+      window._radarChart = new Chart(document.getElementById('radarChart'), {
+        type: 'radar',
+        data: {
+          labels: ['Problem Clarity', 'Market Size', 'Feasibility', 'Differentiation', 'Revenue Potential'],
+          datasets: [{
+            label: 'Business Score',
+            data: [
+              j.problem_clarity?.score * 10 || 0,
+              j.market_size?.score * 10 || 0,
+              j.feasibility?.score * 10 || 0,
+              j.differentiation?.score * 10 || 0,
+              j.revenue_potential?.score * 10 || 0
+            ],
+            backgroundColor: 'rgba(255,106,0,0.15)',
+            borderColor: '#ff6a00',
+            pointBackgroundColor: '#ff6a00',
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              min: 0, max: 100,
+              ticks: { color: '#6b4f30', backdropColor: 'transparent', stepSize: 20 },
+              grid: { color: '#2a1a08' },
+              pointLabels: { color: '#c0a880', font: { size: 11 } }
+            }
+          }
+        }
+      });
 
       await delay(1800);
       showPopup(j);
@@ -593,22 +728,22 @@
       const roastEl = document.getElementById('popupRoast');
       const scoreEl = document.getElementById('popupScore');
 
-      if (verdict === 'Fund it') {
+      if (verdict === 'Survives') {
         chicken.textContent = '🍗';
         chicken.style.animation = 'glow 1.5s infinite, spin 4s linear infinite';
-        verdictEl.textContent = '✅ PERFECTLY COOKED';
+        verdictEl.textContent = '✅ THIS STARTUP SURVIVES';
         verdictEl.style.color = '#00cc44';
         scoreEl.style.color = '#00cc44';
       } else if (verdict === 'Needs work') {
         chicken.textContent = '🔥🍗';
         chicken.style.animation = 'shake 0.6s infinite';
-        verdictEl.textContent = '⚠️ SLIGHTLY BURNT';
+        verdictEl.textContent = '⚠️ PIVOT OR DIE';
         verdictEl.style.color = '#ffaa00';
         scoreEl.style.color = '#ffaa00';
       } else {
         chicken.textContent = '💥🍗';
         chicken.style.animation = 'explode 0.5s infinite';
-        verdictEl.textContent = '💀 BOOM ROASTED';
+        verdictEl.textContent = '💀 DEAD ON ARRIVAL';
         verdictEl.style.color = '#cc0000';
         scoreEl.style.color = '#cc0000';
       }
@@ -633,9 +768,42 @@
       setTimeout(() => { overlay.style.display = 'none'; }, 300);
     }
 
+    function toggleImprovements() {
+      const box = document.getElementById('improvementsBox');
+      const badge = document.querySelector('.verdict-badge span');
+      if (box.style.display === 'none') {
+        box.style.display = 'block';
+        if (badge) badge.textContent = '▲ hide ideas';
+      } else {
+        box.style.display = 'none';
+        if (badge) badge.textContent = '▼ tap for ideas';
+      }
+    }
+
+    function shareResult(id) {
+      const url = window.location.origin + '/result/' + id;
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = event.target;
+        const orig = btn.textContent;
+        btn.textContent = '✅ Link copied!';
+        btn.style.color = '#00cc44';
+        setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 2000);
+      }).catch(() => {
+        prompt('Copy this link:', url);
+      });
+    }
+
     document.getElementById('idea').addEventListener('keydown', e => {
       if (e.key === 'Enter' && e.metaKey) startRoast();
     });
+
+    {% if prefill %}
+    (async () => {
+      document.getElementById('idea').value = {{ prefill.idea | tojson }};
+      updateCharCount();
+      await renderAll({{ prefill | tojson }});
+    })();
+    {% endif %}
   </script>
 </body>
 </html>
