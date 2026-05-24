@@ -255,6 +255,25 @@
     @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(8px)} }
     @keyframes explode { 0%{transform:scale(1)} 30%{transform:scale(1.4)} 60%{transform:scale(0.8) rotate(20deg)} 100%{transform:scale(1.2) rotate(-10deg)} }
     @keyframes glow { 0%,100%{filter:drop-shadow(0 0 20px #ffaa00)} 50%{filter:drop-shadow(0 0 50px #ff6600)} }
+
+    @media print {
+      body { background: #fff; color: #111; padding: 20px; }
+      .input-section, .loading, #overlay, button,
+      #panelSection, #debateSection { display: none !important; }
+      #chartSection, #judgeSection { display: block !important; }
+      .section-title { color: #333; }
+      .judge-card { background: #f9f9f9; border: 1px solid #ddd; opacity: 1; }
+      .judge-title { color: #c43d00; }
+      .verdict-badge { border: 2px solid #333; }
+      .verdict-fund { background: #e6ffe6; color: #006620; }
+      .verdict-work { background: #fffbe6; color: #7a5000; }
+      .verdict-kill { background: #ffe6e6; color: #8b0000; }
+      #improvementsBox { display: block !important; }
+      canvas { max-width: 100% !important; }
+      h1 { font-size: 3rem; color: #c43d00; text-shadow: none; }
+      .subtitle { color: #666; }
+      .title-chicken { animation: none; }
+    }
   </style>
 </head>
 <body>
@@ -644,8 +663,8 @@
           </div>` : ''}
         </div>` : ''}
 
-        <button onclick="shareResult('${data.id}')" style="margin-top:16px;padding:10px 20px;width:auto;font-size:0.9rem;letter-spacing:1px;background:linear-gradient(135deg,#1a1008,#2a1a08);border:1px solid #3a2510;">
-          🔗 Copy shareable link
+        <button onclick="window.print()" style="margin-top:16px;padding:10px 20px;width:auto;font-size:0.9rem;letter-spacing:1px;background:linear-gradient(135deg,#1a1008,#2a1a08);border:1px solid #3a2510;">
+          📄 Download PDF
         </button>
       `;
 
@@ -780,20 +799,7 @@
       }
     }
 
-    function shareResult(id) {
-      const url = window.location.origin + '/result/' + id;
-      navigator.clipboard.writeText(url).then(() => {
-        const btn = event.target;
-        const orig = btn.textContent;
-        btn.textContent = '✅ Link copied!';
-        btn.style.color = '#00cc44';
-        setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 2000);
-      }).catch(() => {
-        prompt('Copy this link:', url);
-      });
-    }
-
-    document.getElementById('idea').addEventListener('keydown', e => {
+document.getElementById('idea').addEventListener('keydown', e => {
       if (e.key === 'Enter' && e.metaKey) startRoast();
     });
 

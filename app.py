@@ -55,7 +55,7 @@ def load_rubric():
 
 
 MODELS = [
-    "llama-3.3-70b-versatile",
+    "openai/gpt-oss-20b",
     "llama-3.1-8b-instant",
     "meta-llama/llama-4-scout-17b-16e-instruct",
     "qwen/qwen3-32b"
@@ -96,7 +96,7 @@ Return ONLY valid JSON:
 }}"""
 
     response = CASTING_CLIENT.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
         messages=[{"role": "user", "content": prompt}],
         temperature=1.0
     )
@@ -325,7 +325,7 @@ Return ONLY valid JSON:
 }}"""
 
     response = JUDGE_CLIENT.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.3,
         max_tokens=2048
@@ -412,4 +412,5 @@ def view_result(result_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
