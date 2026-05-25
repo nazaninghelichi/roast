@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>ROAST — README</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0e0a06;
+      color: #f0e6d0;
+      font-family: 'Inter', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 60px 40px;
+      line-height: 1.7;
+    }
+
+    .header { text-align: center; margin-bottom: 48px; }
+    .chicken { font-size: 4rem; display: block; margin-bottom: 8px; }
+    h1 { font-family: 'Bangers', cursive; font-size: 5rem; letter-spacing: 10px; color: #ff6a00; text-shadow: 0 4px 0 #8b2500; line-height: 1; }
+    .tagline { font-size: 1rem; color: #8a6a40; margin-top: 12px; font-style: italic; line-height: 1.6; }
+    .live { display: inline-block; margin-top: 16px; background: #140d05; border: 1px solid #ff6a0066; border-radius: 8px; padding: 8px 20px; color: #ff6a00; font-family: 'Bangers', cursive; letter-spacing: 2px; font-size: 1rem; }
+
+    hr { border: none; border-top: 1px solid #2a1a08; margin: 36px 0; }
+
+    h2 { font-family: 'Bangers', cursive; font-size: 1.6rem; letter-spacing: 4px; color: #ff6a00; margin-bottom: 20px; margin-top: 40px; }
+    h3 { font-size: 0.9rem; font-weight: 700; color: #f0e6d0; margin-bottom: 8px; margin-top: 20px; letter-spacing: 1px; text-transform: uppercase; }
+
+    p { color: #c0a880; margin-bottom: 14px; font-size: 0.95rem; }
+
+    .steps { display: flex; flex-direction: column; gap: 12px; }
+    .step { display: flex; gap: 16px; background: #140d05; border: 1px solid #2a1a08; border-radius: 12px; padding: 16px 20px; }
+    .step-num { font-family: 'Bangers', cursive; font-size: 2rem; color: #ff6a00; min-width: 32px; line-height: 1.1; }
+    .step-body h3 { margin-top: 0; text-transform: none; font-size: 0.95rem; }
+    .step-body p { margin-bottom: 0; font-size: 0.85rem; color: #8a6a40; }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+    th { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: #6b4f30; padding: 10px 14px; border-bottom: 1px solid #2a1a08; text-align: left; }
+    td { padding: 10px 14px; border-bottom: 1px solid #1a1008; font-size: 0.85rem; color: #c0a880; }
+    td:first-child { color: #f0e6d0; font-weight: 600; }
+    td code { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: #ff6a00; }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .tag { background: #1a1008; border: 1px solid #3a2510; border-radius: 20px; padding: 5px 14px; font-size: 0.8rem; color: #c0a880; }
+    .tag.hot { border-color: #ff6a0066; color: #ff6a00; }
+
+    code { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #ff6a00; background: #1a1008; padding: 2px 6px; border-radius: 4px; }
+    pre { background: #140d05; border: 1px solid #2a1a08; border-radius: 12px; padding: 20px; margin: 16px 0; overflow-x: auto; }
+    pre code { color: #c0a880; background: none; padding: 0; font-size: 0.82rem; }
+
+    .why-box { background: #140d05; border: 1px solid #ff6a0033; border-radius: 12px; padding: 20px 24px; margin: 16px 0; }
+    .why-box p { margin-bottom: 0; color: #8a6a40; }
+    .why-box strong { color: #ff6a00; }
+
+    .footer { text-align: center; margin-top: 60px; padding-top: 24px; border-top: 1px solid #2a1a08; }
+    .footer p { font-size: 0.8rem; color: #4a3020; letter-spacing: 1px; }
+    .footer strong { color: #ff6a00; }
+
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <span class="chicken">🍗</span>
+    <h1>ROAST</h1>
+    <div class="tagline">Every founder thinks their idea is good. Most are wrong.</div>
+    <div class="live">roast.up.railway.app</div>
+  </div>
+
+  <hr>
+
+  <h2>HOW IT WORKS</h2>
+
+  <p>You describe your product idea in a few sentences with enough detail for the AI to understand it. A casting LLM analyzes the description, infers the target market, and generates 4 completely different synthetic customers with unique names, ages, personalities, jobs, habits, and backstories.</p>
+
+  <p>Each persona runs on a different LLM model with its own isolated API key and independent memory context, preventing shared reasoning or cross-contamination between agents. Using concurrent API calls, the personas simulate 3 months of product usage in parallel across multiple checkpoints — Week 1, Month 1, and Month 3. Every simulation returns structured JSON containing their experience, satisfaction score, best moment, worst moment, complaints, feature requests, retention likelihood, and willingness to pay.</p>
+
+  <p>Because the agents are fully isolated, they naturally disagree. The highest-scoring persona and the lowest-scoring persona are then selected for a 10-turn debate with alternating responses, damage scoring, and live health bars.</p>
+
+  <p>A final judge LLM reads the entire transcript along with the raw simulation outputs, retrieves a startup evaluation rubric through a RAG pipeline, and scores the business across multiple dimensions — market potential, retention, defensibility, monetization, and product-market fit. The system also returns confidence scores, comparable real-world startups, and a market analogy explaining what kind of company the idea resembles.</p>
+
+  <hr>
+
+  <h2>WHY ISOLATION MATTERS</h2>
+  <div class="why-box">
+    <p>Every persona uses a <strong>different LLM model</strong> on a <strong>different API key</strong> — no shared context, no cross-contamination. The disagreement is genuine. One model doesn't know what the others will say.</p>
+  </div>
+
+  <table>
+    <tr><th>Role</th><th>Model</th><th>Key</th></tr>
+    <tr><td>Persona 1</td><td>openai/gpt-oss-20b</td><td><code>ROAST1</code></td></tr>
+    <tr><td>Persona 2</td><td>llama-3.1-8b-instant</td><td><code>ROAST2</code></td></tr>
+    <tr><td>Persona 3</td><td>meta-llama/llama-4-scout-17b-16e-instruct</td><td><code>ROAST3</code></td></tr>
+    <tr><td>Persona 4</td><td>qwen/qwen3-32b</td><td><code>ROAST4</code></td></tr>
+    <tr><td>Casting</td><td>meta-llama/llama-4-scout-17b-16e-instruct</td><td><code>ROAST_CASTING</code></td></tr>
+    <tr><td>Judge (RAG)</td><td>meta-llama/llama-4-scout-17b-16e-instruct</td><td><code>ROAST_JUDGE</code></td></tr>
+  </table>
+
+  <hr>
+
+  <h2>STACK</h2>
+  <div class="tag-row">
+    <div class="tag hot">Flask</div>
+    <div class="tag hot">Groq API</div>
+    <div class="tag hot">concurrent.futures</div>
+    <div class="tag hot">RAG via rubric.md</div>
+    <div class="tag">Chart.js</div>
+    <div class="tag">html2canvas + jsPDF</div>
+    <div class="tag">Bangers font</div>
+    <div class="tag">Railway deploy</div>
+    <div class="tag">UUID result storage</div>
+  </div>
+
+  <hr>
+
+  <div class="footer">
+    <p>Built by <strong>Nazanin Ghelichi</strong></p>
+    <p style="margin-top:4px;">MakersLounge · Toronto Tech Week #11 · Track 3: Synthetic Customers</p>
+  </div>
+
+</body>
+</html>
