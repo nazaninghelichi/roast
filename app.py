@@ -340,65 +340,74 @@ def index():
 
 @app.route('/roast', methods=['POST'])
 def roast():
-    idea = request.json.get('idea', '').strip()
+    try:
+        idea = request.json.get('idea', '').strip()
+    except Exception:
+        return jsonify({"error": "Bad request"}), 400
     audience = 'inferred from the product idea'
     days = 90
     if not idea:
         return jsonify({"error": "No idea provided"}), 400
 
-    rubric = load_rubric()
-    personas = cast_personas(idea, audience)
+    try:
+        rubric = load_rubric()
+        personas = cast_personas(idea, audience)
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(simulate_usage, p, idea) for p in personas]
-        reactions = [f.result() for f in futures]
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(simulate_usage, p, idea) for p in personas]
+            reactions = [f.result() for f in futures]
 
-    all_hate = all(r.get('score', 50) < 50 for r in reactions)
+        all_hate = all(r.get('score', 50) < 50 for r in reactions)
 
-    if all_hate:
-        debate_history, final_scores, final_lives, round_snapshots = [], [r['score'] for r in reactions], {p['name']: 10 for p in personas}, []
-    else:
-        debate_history, final_scores, final_lives, round_snapshots = run_debate(personas, idea, reactions)
+        if all_hate:
+            debate_history, final_scores, final_lives, round_snapshots = [], [r.get('score', 50) for r in reactions], {p['name']: 10 for p in personas}, []
+        else:
+            debate_history, final_scores, final_lives, round_snapshots = run_debate(personas, idea, reactions)
 
-    for i, r in enumerate(reactions):
-        r['_name'] = personas[i]['name']
-        r['_role'] = personas[i]['role']
+        for i, r in enumerate(reactions):
+            r['_name'] = personas[i]['name']
+            r['_role'] = personas[i]['role']
 
-    judgment = judge_idea(idea, audience, debate_history, final_scores, rubric, days, reactions)
+        judgment = judge_idea(idea, audience, debate_history, final_scores, rubric, days, reactions)
 
-    initial_health = round(sum(r.get('score', 50) for r in reactions) / len(reactions))
-    final_health = round(sum(final_scores) / len(final_scores))
+        initial_health = round(sum(r.get('score', 50) for r in reactions) / len(reactions))
+        final_health = round(sum(final_scores) / len(final_scores))
 
-    result_id = str(uuid.uuid4())[:8]
-    result = {
-        "id": result_id,
-        "idea": idea,
-        "personas": [
-            {
-                "name": personas[i]['name'],
-                "role": personas[i]['role'],
-                "emoji": personas[i]['emoji'],
-                "personality": personas[i].get('personality', ''),
-                "model": personas[i]['model'],
-                "reaction": reactions[i],
-                "final_score": final_scores[i],
-                "final_lives": final_lives[personas[i]['name']]
-            }
-            for i in range(len(personas))
-        ],
-        "days": days,
-        "debate": debate_history,
-        "round_snapshots": round_snapshots,
-        "all_hate": all_hate,
-        "initial_health": initial_health,
-        "final_health": final_health,
-        "judgment": judgment
-    }
+        result_id = str(uuid.uuid4())[:8]
+        result = {
+            "id": result_id,
+            "idea": idea,
+            "personas": [
+                {
+                    "name": personas[i]['name'],
+                    "role": personas[i]['role'],
+                    "emoji": personas[i]['emoji'],
+                    "personality": personas[i].get('personality', ''),
+                    "model": personas[i]['model'],
+                    "reaction": reactions[i],
+                    "final_score": final_scores[i],
+                    "final_lives": final_lives[personas[i]['name']]
+                }
+                for i in range(len(personas))
+            ],
+            "days": days,
+            "debate": debate_history,
+            "round_snapshots": round_snapshots,
+            "all_hate": all_hate,
+            "initial_health": initial_health,
+            "final_health": final_health,
+            "judgment": judgment
+        }
 
-    with open(f'{RESULTS_DIR}/{result_id}.json', 'w') as f:
-        json.dump(result, f)
+        with open(f'{RESULTS_DIR}/{result_id}.json', 'w') as f:
+            json.dump(result, f)
 
-    return jsonify(result)
+        return jsonify(result)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/result/<result_id>')
