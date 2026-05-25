@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🍗 Roast</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;900&display=swap');
 
@@ -670,7 +672,7 @@
           </div>` : ''}
         </div>` : ''}
 
-        <button onclick="window.print()" style="margin-top:16px;padding:10px 20px;width:auto;font-size:0.9rem;letter-spacing:1px;background:linear-gradient(135deg,#1a1008,#2a1a08);border:1px solid #3a2510;">
+        <button onclick="downloadPDF(this)" style="margin-top:16px;padding:10px 20px;width:auto;font-size:0.9rem;letter-spacing:1px;background:linear-gradient(135deg,#1a1008,#2a1a08);border:1px solid #3a2510;">
           📄 Download PDF
         </button>
       `;
@@ -809,6 +811,33 @@
 document.getElementById('idea').addEventListener('keydown', e => {
       if (e.key === 'Enter' && e.metaKey) startRoast();
     });
+
+    async function downloadPDF(btn) {
+      const orig = btn.textContent;
+      btn.textContent = '⏳ Capturing...';
+      btn.disabled = true;
+
+      const { jsPDF } = window.jspdf;
+      const target = document.body;
+      const canvas = await html2canvas(target, {
+        backgroundColor: '#0e0a06',
+        scale: 1.5,
+        useCORS: true,
+        scrollY: 0,
+        windowWidth: document.body.scrollWidth,
+        windowHeight: document.body.scrollHeight,
+        height: document.body.scrollHeight,
+        width: document.body.scrollWidth
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [canvas.width / 1.5, canvas.height / 1.5] });
+      pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width / 1.5, canvas.height / 1.5);
+      pdf.save('roast-results.pdf');
+
+      btn.textContent = orig;
+      btn.disabled = false;
+    }
 
     {% if prefill %}
     (async () => {
