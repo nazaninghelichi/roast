@@ -38,6 +38,8 @@ def extract_json(text):
         print("RAW TEXT (incomplete JSON):", text[:800])
         raise ValueError("No complete JSON found")
     json_str = text[start:end]
+    # Remove control characters that break JSON (LLMs sometimes embed them in strings)
+    json_str = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', json_str)
     try:
         return json.loads(json_str)
     except json.JSONDecodeError:
