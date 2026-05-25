@@ -258,12 +258,18 @@
 
     @media print {
       body { background: #fff; color: #111; padding: 20px; }
-      .input-section, .loading, #overlay, button,
-      #panelSection, #debateSection { display: none !important; }
-      #chartSection, #judgeSection { display: block !important; }
+      .input-section, .loading, #overlay, button { display: none !important; }
+      #panelSection, #chartSection, #debateSection, #judgeSection { display: block !important; }
       .section-title { color: #333; }
+      .card { background: #f9f9f9; border: 1px solid #ddd; opacity: 1; transform: none; page-break-inside: avoid; }
+      .card-name { color: #c43d00; }
+      .card-role, .card-model, .lbl, .bubble-role, .bubble-model, .round-label { color: #666; }
+      .val, .bubble-text { color: #222; }
       .judge-card { background: #f9f9f9; border: 1px solid #ddd; opacity: 1; }
       .judge-title { color: #c43d00; }
+      .bubble { opacity: 1; transform: none; max-width: 90%; page-break-inside: avoid; }
+      .bubble.support { background: #f0fff0; border: 1px solid #ccc; }
+      .bubble.skeptic { background: #fff5f0; border: 1px solid #ccc; }
       .verdict-badge { border: 2px solid #333; }
       .verdict-fund { background: #e6ffe6; color: #006620; }
       .verdict-work { background: #fffbe6; color: #7a5000; }
@@ -273,6 +279,7 @@
       h1 { font-size: 3rem; color: #c43d00; text-shadow: none; }
       .subtitle { color: #666; }
       .title-chicken { animation: none; }
+      .cards-grid { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
