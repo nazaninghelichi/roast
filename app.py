@@ -43,12 +43,18 @@ def extract_json(text):
     try:
         return json.loads(json_str)
     except json.JSONDecodeError:
+        # Fix trailing commas
         json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)
         try:
             return json.loads(json_str)
-        except json.JSONDecodeError as e:
-            print("RAW JSON FAILED:", json_str[:800])
-            raise
+        except json.JSONDecodeError:
+            # Fix missing commas between fields
+            json_str = re.sub(r'(["\d\]}\w])\s*\n(\s*")', r'\1,\n\2', json_str)
+            try:
+                return json.loads(json_str)
+            except json.JSONDecodeError as e:
+                print("RAW JSON FAILED:", json_str[:800])
+                raise
 
 
 def load_rubric():
