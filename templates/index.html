@@ -548,11 +548,15 @@
         const bubble = document.createElement('div');
         bubble.className = `bubble ${msg.side}`;
         const dmg = msg.damage || 1;
-        const dmgLabel = dmg === 3 ? '💥 CRITICAL HIT' : dmg === 2 ? '🔥 SOLID BURN' : '😏 mild jab';
-        const dmgColor = dmg === 3 ? '#ff2200' : dmg === 2 ? '#ff6a00' : '#888';
+        const isConcede = msg.conceded === true;
+        const dmgLabel = isConcede ? '🤝 CONCEDES' : dmg === 3 ? '💥 CRITICAL HIT' : dmg === 2 ? '🔥 SOLID BURN' : '😏 mild jab';
+        const dmgColor = isConcede ? '#44dd88' : dmg === 3 ? '#ff2200' : dmg === 2 ? '#ff6a00' : '#888';
         const livesAfter = msg.lives_after || {};
         const targetLives = typeof livesAfter[msg.target] === 'number' ? livesAfter[msg.target] : 10;
         const lifeChicken = '🍗'.repeat(Math.max(0, targetLives)) + '🦴'.repeat(Math.max(0, 10 - targetLives));
+        const afterLine = isConcede
+          ? `<div style="margin-top:8px;font-size:0.75rem;color:#44dd88;">Debate ends — ${msg.target} proved their point.</div>`
+          : `<div style="margin-top:8px;font-size:0.75rem;color:#3a2510;">${msg.target} has ${targetLives} left: ${lifeChicken}</div>`;
         bubble.innerHTML = `
           <div class="bubble-head">
             <span>${msg.emoji}</span>
@@ -563,11 +567,11 @@
             </div>
             <div style="margin-left:auto;text-align:right;">
               <div style="font-size:0.7rem;color:${dmgColor};font-family:'Bangers',cursive;letter-spacing:1px;">${dmgLabel}</div>
-              <div style="font-size:0.75rem;color:#3a2510;">→ ${msg.target}: -${dmg} life</div>
+              ${isConcede ? '' : `<div style="font-size:0.75rem;color:#3a2510;">→ ${msg.target}: -${dmg} life</div>`}
             </div>
           </div>
           <div class="bubble-text">${msg.text}</div>
-          <div style="margin-top:8px;font-size:0.75rem;color:#3a2510;">${msg.target} has ${targetLives} left: ${lifeChicken}</div>
+          ${afterLine}
         `;
         thread.appendChild(bubble);
         await delay(300);

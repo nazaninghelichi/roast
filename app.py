@@ -199,34 +199,35 @@ Return ONLY valid JSON:
 def debate_turn(speaker, target, idea, history, speaker_score, target_score):
     history_text = "\n".join([
         f"{h['speaker']}: {h['text']}"
-        for h in history[-4:]
-    ]) if history else "Battle just started."
+        for h in history
+    ]) if history else "The argument just started."
 
     stance = "you loved using it" if speaker_score >= 50 else "you had a bad experience with it"
     target_stance = "loved" if target_score >= 50 else "hated"
 
-    prompt = f"""You are {speaker['name']}, a {speaker['role']} who has actually used this product: "{idea}"
+    prompt = f"""You are {speaker['name']}, a {speaker['role']} who actually used this product: "{idea}"
 Your personality: {speaker.get('personality', 'honest and direct')}
 Your experience: {stance}. {target['name']} {target_stance} it.
 
-Recent burns:
+This is a live argument thread. Read every message. Your response must directly address what {target['name']} said last — not just repeat your original take.
+
+Full argument so far:
 {history_text}
 
-Roast {target['name']}'s EXPERIENCE or TAKE on the product — not who they are as a person.
-You're two real users going at it in a review thread. Attack their reasoning, their complaint, their logic.
-Sound human — casual, a bit snarky, like you're texting. 1-2 sentences, open with the burn, no warm-up.
-Never say "I appreciate", "fair point", or anything that sounds like a LinkedIn comment.
+Now reply to {target['name']}'s last message.
+- If they made a point you genuinely can't refute, you can CONCEDE — "concede": true. This ends the debate.
+- Otherwise, attack their specific reasoning. Don't repeat yourself.
+- 1-2 sentences, casual, like a text. No warm-up. No "I appreciate" or "fair point".
 
-Score your burn:
-1 = mild (meh, barely stings)
-2 = solid (they felt that)
-3 = CRITICAL HIT (their whole argument is cooked)
+Rate your hit:
+1 = mild  2 = solid  3 = CRITICAL HIT (their argument is cooked)
 
 Return ONLY valid JSON:
 {{
-    "text": "the roast",
+    "text": "your response",
     "damage": <1, 2, or 3>,
-    "new_score": <your updated score 0-100>
+    "new_score": <your updated satisfaction score 0-100>,
+    "concede": <true only if you genuinely agree they proved their point, otherwise false>
 }}"""
 
     for attempt in range(2):
@@ -240,7 +241,7 @@ Return ONLY valid JSON:
         except Exception as e:
             print(f"debate_turn attempt {attempt+1} failed for {speaker['name']}: {e}")
             if attempt == 1:
-                return {"text": "...", "damage": 1, "new_score": speaker_score}
+                return {"text": "...", "damage": 1, "new_score": speaker_score, "concede": False}
 
 
 def run_debate(personas, idea, reactions, total_exchanges=10):
@@ -276,6 +277,7 @@ def run_debate(personas, idea, reactions, total_exchanges=10):
 
         result = debate_turn(speaker, target, idea, history, scores[speaker_idx], scores[target_idx])
         damage = max(1, min(3, int(result.get('damage', 1))))
+        conceded = bool(result.get('concede', False))
         lives[target['name']] = max(0, lives[target['name']] - damage)
         scores[speaker_idx] = int(result.get('new_score', scores[speaker_idx]))
 
@@ -290,7 +292,8 @@ def run_debate(personas, idea, reactions, total_exchanges=10):
             "target": target['name'],
             "score": result.get('new_score', scores[speaker_idx]),
             "side": side,
-            "lives_after": dict(lives)
+            "lives_after": dict(lives),
+            "conceded": conceded
         })
 
         round_snapshots.append({
@@ -299,6 +302,14 @@ def run_debate(personas, idea, reactions, total_exchanges=10):
             "lives": dict(lives),
             "health": round(sum(scores) / len(scores))
         })
+
+        # End early if speaker conceded (target proved their point)
+        if conceded:
+            break
+
+        # End early if scores have converged — they've met in the middle (after min 4 exchanges)
+        if exchange >= 3 and abs(scores[supporters[0]] - scores[skeptics[0]]) <= 12:
+            break
 
         turn = 1 - turn
 
