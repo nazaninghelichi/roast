@@ -202,7 +202,13 @@ def debate_turn(speaker, target, idea, history, speaker_score, target_score, spe
         for h in history
     ]) if history else "The argument just started."
 
-    stance = "you loved using it" if speaker_score >= 50 else "you had a bad experience with it"
+    if speaker_score >= 50:
+        stance = "you loved using it and you're trying to PROVE this product deserves to exist"
+        mission = f"Your goal: convince everyone that {target['name']}'s bad experience is the exception, not the rule. Defend the product. Attack the flaw in their reasoning."
+    else:
+        stance = "you had a terrible experience and you're trying to PROVE this product will fail"
+        mission = f"Your goal: convince everyone that {target['name']}'s positive experience is luck or cope. Expose the real problems. Make the case that this product is doomed."
+
     target_stance = "loved" if target_score >= 50 else "hated"
 
     sr = speaker_reaction or {}
@@ -231,11 +237,13 @@ def debate_turn(speaker, target, idea, history, speaker_score, target_score, spe
 Your personality: {speaker.get('personality', 'honest and direct')}
 Overall: {stance}.
 
+{mission}
+
 {speaker_context}
 
 {target_context}
 
-This is a live heated argument thread. You are stubborn, passionate, and you believe you are right. Reference your specific experiences — your best moment, your worst moment, what actually happened to you. Call out the gaps in {target['name']}'s story. Use your personal receipts as ammunition.
+This is a live heated argument thread. You are stubborn, passionate, and you have a point to prove. Reference your specific experiences — your best moment, your worst moment, what actually happened to you. Call out the gaps in {target['name']}'s story. Use your personal receipts as ammunition.
 
 Full argument so far:
 {history_text}
