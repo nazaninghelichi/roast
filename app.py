@@ -58,8 +58,11 @@ def extract_json(text):
 
 
 def load_rubric():
-    with open('rubric.md', 'r') as f:
-        return f.read()
+    try:
+        with open('rubric.md', 'r') as f:
+            return f.read()
+    except FileNotFoundError:
+        return "Evaluate on: problem clarity, market size, feasibility, differentiation, revenue potential."
 
 
 MODELS = [
@@ -70,7 +73,6 @@ MODELS = [
 ]
 
 KEYS = ["ROAST1", "ROAST2", "ROAST3", "ROAST4"]
-EMOJIS = ["🧑", "👩", "🧔", "👱"]
 
 CASTING_CLIENT = Groq(api_key=os.getenv("ROAST_CASTING"))
 JUDGE_CLIENT = Groq(api_key=os.getenv("ROAST_JUDGE"))
@@ -123,12 +125,16 @@ Return ONLY valid JSON:
     if data is None:
         raise ValueError("Casting failed on all models")
 
+    personas_data = data.get("personas", data if isinstance(data, list) else [])
+    if len(personas_data) < 4:
+        raise ValueError(f"Casting returned only {len(personas_data)} personas, need 4")
+
     return [
         {
-            "name": data["personas"][i]["name"],
-            "role": data["personas"][i]["role"],
-            "emoji": data["personas"][i].get("emoji", "🧑"),
-            "personality": data["personas"][i].get("personality", ""),
+            "name": personas_data[i].get("name", f"User {i+1}"),
+            "role": personas_data[i].get("role", "product user"),
+            "emoji": personas_data[i].get("emoji", "🧑"),
+            "personality": personas_data[i].get("personality", "honest and direct"),
             "client": Groq(api_key=os.getenv(KEYS[i])),
             "model": MODELS[i]
         }
@@ -282,7 +288,7 @@ def run_debate(personas, idea, reactions, total_exchanges=10):
             "text": result['text'],
             "damage": damage,
             "target": target['name'],
-            "score": result['new_score'],
+            "score": result.get('new_score', scores[speaker_idx]),
             "side": side,
             "lives_after": dict(lives)
         })
@@ -363,13 +369,19 @@ Return ONLY valid JSON:
     ]
 }}"""
 
-    response = JUDGE_CLIENT.chat.completions.create(
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-        max_tokens=2048
-    )
-    return extract_json(response.choices[0].message.content.strip())
+    judge_models = ["meta-llama/llama-4-scout-17b-16e-instruct", "llama-3.1-8b-instant"]
+    for model in judge_models:
+        try:
+            response = JUDGE_CLIENT.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=2048
+            )
+            return extract_json(response.choices[0].message.content.strip())
+        except Exception as e:
+            print(f"judge_idea failed with {model}: {e}")
+    raise ValueError("Judge failed on all models")
 
 
 @app.route('/')
