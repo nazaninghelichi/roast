@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ROAST — Presentation</title>
+  <title>ROAST — MakersLounge #11</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;900&display=swap');
 
@@ -17,8 +17,6 @@
       overflow: hidden;
     }
 
-    .deck { width: 100%; height: 100vh; position: relative; }
-
     .slide {
       position: absolute;
       inset: 0;
@@ -26,10 +24,10 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 60px;
+      padding: 60px 80px;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.4s ease;
+      transition: opacity 0.35s ease;
       background: #0e0a06;
       background-image:
         radial-gradient(ellipse at 20% 50%, rgba(255,80,0,0.05) 0%, transparent 60%),
@@ -37,17 +35,15 @@
     }
     .slide.active { opacity: 1; pointer-events: all; }
 
-    .bang { font-family: 'Bangers', cursive; }
-
     /* Nav */
     .nav {
       position: fixed;
-      bottom: 30px;
+      bottom: 28px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 20px;
       z-index: 100;
     }
     .nav button {
@@ -57,427 +53,265 @@
       font-family: 'Bangers', cursive;
       font-size: 1rem;
       letter-spacing: 2px;
-      padding: 8px 20px;
+      padding: 8px 24px;
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s;
     }
     .nav button:hover { border-color: #ff6a00; color: #ff6a00; }
-    .nav button:disabled { opacity: 0.2; cursor: not-allowed; }
-    .nav .counter { font-size: 0.75rem; color: #4a3020; letter-spacing: 2px; min-width: 60px; text-align: center; }
+    .nav button:disabled { opacity: 0.15; cursor: not-allowed; }
+    .counter { font-size: 0.7rem; color: #3a2510; letter-spacing: 3px; min-width: 50px; text-align: center; }
 
-    /* Slide-specific styles */
-    .title-chicken { font-size: 5rem; animation: float 2s ease-in-out infinite; display: block; margin-bottom: -10px; }
+    .track-badge {
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #ff6a00;
+      background: #1a0a00;
+      border: 1px solid #ff6a0044;
+      border-radius: 20px;
+      padding: 5px 16px;
+      margin-bottom: 24px;
+    }
+
+    h1.big { font-family: 'Bangers', cursive; font-size: 9rem; letter-spacing: 14px; color: #ff6a00; text-shadow: 0 0 60px rgba(255,106,0,0.4), 0 6px 0 #8b2500; line-height: 1; }
+    .chicken { font-size: 5rem; display: block; margin-bottom: -10px; animation: float 2s ease-in-out infinite; }
     @keyframes float { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-10px) rotate(5deg)} }
 
-    .big-title { font-family: 'Bangers', cursive; font-size: 8rem; letter-spacing: 12px; color: #ff6a00; text-shadow: 0 0 60px rgba(255,106,0,0.5), 0 6px 0 #8b2500; line-height: 1; }
-    .big-sub { font-size: 0.9rem; letter-spacing: 4px; text-transform: uppercase; color: #6b4f30; margin-top: 12px; }
+    .slide-title { font-family: 'Bangers', cursive; font-size: 3.5rem; letter-spacing: 6px; color: #ff6a00; margin-bottom: 44px; text-align: center; }
 
-    .slide-title { font-family: 'Bangers', cursive; font-size: 3rem; letter-spacing: 6px; color: #ff6a00; margin-bottom: 40px; text-align: center; }
-    .slide-title.small { font-size: 2rem; margin-bottom: 24px; }
+    p.lead { font-size: 1.05rem; color: #8a6a40; line-height: 1.8; max-width: 680px; text-align: center; }
+    p.lead strong { color: #f0e6d0; }
 
-    .problem-stat { font-family: 'Bangers', cursive; font-size: 5rem; color: #ff3300; line-height: 1; }
-    .problem-label { font-size: 0.85rem; color: #6b4f30; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
-
-    .card-row { display: flex; gap: 20px; width: 100%; max-width: 1000px; }
-    .mini-card {
-      flex: 1;
-      background: #140d05;
-      border: 1px solid #2a1a08;
-      border-radius: 14px;
-      padding: 24px 20px;
-      text-align: center;
-    }
-    .mini-card .icon { font-size: 2.5rem; margin-bottom: 12px; }
-    .mini-card h3 { font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: 2px; color: #ff6a00; margin-bottom: 8px; }
-    .mini-card p { font-size: 0.82rem; color: #8a6a40; line-height: 1.6; }
-
-    .step-list { display: flex; flex-direction: column; gap: 14px; max-width: 700px; width: 100%; }
-    .step {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      background: #140d05;
-      border: 1px solid #2a1a08;
-      border-radius: 12px;
-      padding: 16px 20px;
-    }
-    .step-num { font-family: 'Bangers', cursive; font-size: 1.8rem; color: #ff6a00; min-width: 32px; line-height: 1; }
-    .step-text h4 { font-size: 0.9rem; font-weight: 700; color: #f0e6d0; margin-bottom: 3px; }
-    .step-text p { font-size: 0.78rem; color: #6b4f30; }
-
-    .model-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 900px; width: 100%; }
-    .model-pill {
-      background: #140d05;
-      border: 1px solid #2a1a08;
-      border-radius: 10px;
-      padding: 14px 16px;
-      text-align: center;
-    }
-    .model-pill .role { font-size: 0.65rem; color: #6b4f30; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
-    .model-pill .name { font-size: 0.78rem; color: #c0a880; font-weight: 600; }
-    .model-pill .key { font-size: 0.6rem; color: #ff6a00; margin-top: 3px; }
-
-    .verdict-row { display: flex; gap: 16px; max-width: 800px; width: 100%; }
-    .verdict-box {
-      flex: 1;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      font-family: 'Bangers', cursive;
-      font-size: 1.3rem;
-      letter-spacing: 3px;
-    }
-    .v-green { background: #0a1a08; color: #44dd66; border: 1px solid #44dd6644; }
-    .v-yellow { background: #1a1208; color: #ffaa00; border: 1px solid #ffaa0044; }
-    .v-red { background: #1a0808; color: #ff3300; border: 1px solid #ff330044; }
-    .verdict-box p { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 400; margin-top: 6px; letter-spacing: 0; opacity: 0.7; }
-
-    .tag-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; max-width: 700px; }
-    .tag {
-      background: #1a1008;
-      border: 1px solid #3a2510;
-      border-radius: 20px;
-      padding: 6px 16px;
-      font-size: 0.8rem;
-      color: #c0a880;
-    }
-    .tag.hot { border-color: #ff6a0066; color: #ff6a00; }
-
-    .url-box {
-      background: #140d05;
-      border: 2px solid #ff6a00;
-      border-radius: 14px;
-      padding: 20px 40px;
-      font-family: 'Bangers', cursive;
-      font-size: 2rem;
-      letter-spacing: 4px;
-      color: #ff6a00;
-      text-shadow: 0 0 30px rgba(255,106,0,0.4);
-      margin-top: 20px;
-    }
-
-    .quote {
-      max-width: 600px;
-      text-align: center;
-      font-size: 1.1rem;
-      color: #8a6a40;
-      line-height: 1.7;
-      font-style: italic;
-      border-left: 3px solid #ff6a00;
-      padding-left: 20px;
-      text-align: left;
-    }
-
-    .two-col { display: flex; gap: 40px; max-width: 1000px; width: 100%; align-items: flex-start; }
+    .two-col { display: flex; gap: 48px; width: 100%; max-width: 1000px; align-items: flex-start; }
     .col { flex: 1; }
 
-    .badge {
-      display: inline-block;
-      background: #1a0808;
-      border: 1px solid #ff330044;
-      color: #ff6a00;
-      font-family: 'Bangers', cursive;
-      font-size: 0.85rem;
-      letter-spacing: 3px;
-      padding: 4px 14px;
-      border-radius: 20px;
-      margin-bottom: 20px;
+    .card {
+      background: #140d05;
+      border: 1px solid #2a1a08;
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin-bottom: 14px;
     }
+    .card h3 { font-family: 'Bangers', cursive; font-size: 1.1rem; letter-spacing: 2px; color: #ff6a00; margin-bottom: 6px; }
+    .card p { font-size: 0.85rem; color: #8a6a40; line-height: 1.6; }
+    .card .num { font-family: 'Bangers', cursive; font-size: 2.5rem; color: #ff6a00; line-height: 1; margin-bottom: 6px; }
 
-    .progress-bar { background: #1a1008; border-radius: 50px; height: 8px; margin-top: 6px; overflow: hidden; }
-    .progress-fill { height: 100%; border-radius: 50px; background: linear-gradient(90deg, #ff6a00, #ffaa00); }
+    .step-row { display: flex; flex-direction: column; gap: 10px; max-width: 720px; width: 100%; }
+    .step { display: flex; align-items: flex-start; gap: 16px; background: #140d05; border: 1px solid #2a1a08; border-radius: 12px; padding: 14px 18px; }
+    .step-n { font-family: 'Bangers', cursive; font-size: 1.8rem; color: #ff6a00; min-width: 28px; line-height: 1.1; }
+    .step h4 { font-size: 0.9rem; font-weight: 700; color: #f0e6d0; margin-bottom: 2px; }
+    .step p { font-size: 0.78rem; color: #6b4f30; }
 
-    hr.divider { border: none; border-top: 1px solid #2a1a08; width: 100%; max-width: 600px; margin: 20px 0; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 16px; }
+    .tag { background: #1a1008; border: 1px solid #3a2510; border-radius: 20px; padding: 5px 14px; font-size: 0.78rem; color: #c0a880; }
+    .tag.hot { border-color: #ff6a0055; color: #ff6a00; }
 
-    /* Keyboard hint */
-    .hint { position: fixed; top: 20px; right: 24px; font-size: 0.65rem; color: #2a1a08; letter-spacing: 2px; }
+    .next-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 860px; width: 100%; }
+    .next-card { background: #140d05; border: 1px solid #2a1a08; border-radius: 12px; padding: 18px 20px; }
+    .next-card .icon { font-size: 1.6rem; margin-bottom: 8px; }
+    .next-card h3 { font-size: 0.9rem; font-weight: 700; color: #f0e6d0; margin-bottom: 4px; }
+    .next-card p { font-size: 0.78rem; color: #6b4f30; line-height: 1.5; }
+
+    .url { font-family: 'Bangers', cursive; font-size: 2rem; letter-spacing: 4px; color: #ff6a00; background: #140d05; border: 2px solid #ff6a0055; border-radius: 12px; padding: 14px 36px; margin-top: 20px; text-shadow: 0 0 20px rgba(255,106,0,0.3); }
+
+    .stat-row { display: flex; gap: 32px; margin-top: 24px; }
+    .stat { text-align: center; }
+    .stat .n { font-family: 'Bangers', cursive; font-size: 2.8rem; color: #ff6a00; line-height: 1; }
+    .stat .l { font-size: 0.65rem; color: #4a3020; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+
+    hr.div { border: none; border-top: 1px solid #2a1a08; width: 100%; max-width: 600px; margin: 24px 0; }
+
+    .hint { position: fixed; top: 20px; right: 24px; font-size: 0.6rem; color: #2a1a08; letter-spacing: 2px; }
   </style>
 </head>
 <body>
 
-<div class="deck">
-
   <!-- SLIDE 1: Title -->
   <div class="slide active">
-    <span class="title-chicken">🍗</span>
-    <div class="big-title">ROAST</div>
-    <div class="big-sub">Startup Survival Simulation</div>
-    <hr class="divider" style="margin-top:32px;">
-    <div style="font-size:0.8rem;color:#4a3020;letter-spacing:3px;text-transform:uppercase;margin-top:0;">MakersLounge · Toronto Tech Week #11 · Track 3: Synthetic Customers</div>
+    <span class="chicken">🍗</span>
+    <h1 class="big">ROAST</h1>
+    <p style="font-size:0.85rem;color:#6b4f30;letter-spacing:3px;text-transform:uppercase;margin-top:10px;">Startup Survival Simulation</p>
+    <hr class="div">
+    <p style="font-size:0.72rem;color:#3a2510;letter-spacing:2px;text-transform:uppercase;">MakersLounge #11 · Toronto Tech Week · Track 3: Synthetic Customers</p>
+    <p style="font-size:0.72rem;color:#3a2510;letter-spacing:2px;margin-top:6px;">Nazanin Ghelichi · Solo Build</p>
   </div>
 
-  <!-- SLIDE 2: The Problem -->
+  <!-- SLIDE 2: Why -->
   <div class="slide">
-    <div class="slide-title">THE PROBLEM</div>
+    <div class="track-badge">Track 3 — Synthetic Customers</div>
+    <div class="slide-title">WHY I BUILT THIS</div>
     <div class="two-col">
-      <div class="col" style="text-align:center;">
-        <div class="problem-stat">90%</div>
-        <div class="problem-label">of startups fail</div>
-        <br><br>
-        <div class="problem-stat" style="color:#ffaa00;">$50K+</div>
-        <div class="problem-label">avg burned before first real user feedback</div>
-        <br><br>
-        <div class="problem-stat" style="color:#6b4f30;font-size:3.5rem;">months</div>
-        <div class="problem-label">wasted building things people don't want</div>
+      <div class="col">
+        <div class="card">
+          <div class="num">90%</div>
+          <p>of startups fail — most because they built something nobody actually wanted.</p>
+        </div>
+        <div class="card">
+          <div class="num">$50K+</div>
+          <p>average burned before a founder gets honest feedback from real users.</p>
+        </div>
+        <div class="card">
+          <div class="num">3 wks</div>
+          <p>minimum for a real focus group. Slow, expensive, and still only 8 people.</p>
+        </div>
+      </div>
+      <div class="col" style="display:flex;align-items:center;">
+        <p class="lead">Real customer studies are <strong>slow, expensive, and often fail</strong> to surface what customers actually want.<br><br>The track asked us to fix that.<br><br>ROAST does it in <strong>60 seconds.</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: What it does -->
+  <div class="slide">
+    <div class="slide-title">WHAT ROAST DOES</div>
+    <div class="step-row">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div>
+          <h4>You describe your idea</h4>
+          <p>Min 140 characters — enough detail for the AI to understand the product, market, and value prop.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div>
+          <h4>4 synthetic customers are cast</h4>
+          <p>An LLM infers your target market and generates 4 real distinct people — names, ages, personalities, backstories. Nothing hardcoded.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div>
+          <h4>They simulate 3 months of usage</h4>
+          <p>Week 1 excitement, Month 1 habits, Month 3 truth. Each returns structured feedback: story, score, best/worst moment, willingness to pay.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">4</div>
+        <div>
+          <h4>The biggest fan debates the harshest critic — 10 rounds</h4>
+          <p>Alternating roasts, damage scores, life bars. Real disagreement, not a consensus machine.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">5</div>
+        <div>
+          <h4>A judge panel delivers the verdict</h4>
+          <p>RAG-powered investor scores across 5 business dimensions + comparable startups + survival verdict. Then it roasts you.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: Technical -->
+  <div class="slide">
+    <div class="slide-title">HOW IT'S BUILT</div>
+    <div class="two-col">
+      <div class="col">
+        <div class="card">
+          <h3>6 Isolated LLMs</h3>
+          <p>Every agent runs on a different model with its own API key and independent memory context. No shared reasoning. No cross-contamination. The disagreement is genuine.</p>
+        </div>
+        <div class="card">
+          <h3>Concurrent Pipeline</h3>
+          <p>All 4 persona simulations run in parallel via concurrent API calls. Structured JSON output — stories, scores, moments — parsed with a fault-tolerant extractor that handles malformed responses.</p>
+        </div>
+        <div class="card">
+          <h3>RAG-Powered Judge</h3>
+          <p>The judge retrieves a startup evaluation rubric at inference time and scores across problem clarity, market size, feasibility, differentiation, and revenue potential.</p>
+        </div>
       </div>
       <div class="col">
-        <div class="quote">
-          "We spent 8 months building it. Launched. Crickets. Turns out nobody wanted what we thought they wanted."
+        <div class="card">
+          <h3>Fault Tolerance</h3>
+          <p>Every LLM call has retry logic with fallback models. Casting tries 3 different models before failing. The app never crashes on a bad response.</p>
         </div>
-        <br><br>
-        <div class="quote" style="border-color:#ffaa00;">
-          "User interviews take weeks. Focus groups cost thousands. By the time you get real feedback, you're already committed."
+        <div class="card">
+          <h3>Full Stack</h3>
+          <p>Flask backend · Groq API · Chart.js · html2canvas PDF export · UUID result storage · Railway deploy</p>
+        </div>
+        <div style="margin-top:14px;">
+          <div class="tag-row" style="justify-content:flex-start;">
+            <div class="tag hot">openai/gpt-oss-20b</div>
+            <div class="tag hot">llama-3.1-8b</div>
+            <div class="tag hot">llama-4-scout-17b</div>
+            <div class="tag hot">qwen3-32b</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 3: The Solution -->
+  <!-- SLIDE 5: What's next -->
   <div class="slide">
-    <div class="slide-title">THE SOLUTION</div>
-    <div style="text-align:center;margin-bottom:36px;max-width:600px;">
-      <p style="color:#8a6a40;font-size:1rem;line-height:1.7;">Describe your startup idea. <strong style="color:#f0e6d0;">ROAST</strong> simulates 3 months of real user behavior before you write a single line of product code.</p>
-    </div>
-    <div class="card-row">
-      <div class="mini-card">
-        <div class="icon">🧑‍🤝‍🧑</div>
-        <h3>Real Users</h3>
-        <p>AI casts 4 distinct synthetic customers from your actual target market. Each with a name, backstory, and personality.</p>
+    <div class="slide-title">WHAT'S NEXT</div>
+    <div class="next-row">
+      <div class="next-card">
+        <div class="icon">📄</div>
+        <h3>PDF Brief Upload</h3>
+        <p>Instead of a text box, founders upload a full product brief — pricing, competitors, go-to-market, risks. LLMs react to real numbers, not guesses.</p>
       </div>
-      <div class="mini-card">
+      <div class="next-card">
         <div class="icon">📅</div>
-        <h3>3-Month Arc</h3>
-        <p>Week 1 excitement. Month 1 habits. Month 3 truth. Each user tells you what happened — specifically.</p>
+        <h3>30-Day Live Simulation</h3>
+        <p>Synthetic users post async over 30 days — Week 1, Week 2, Month 1 updates. Opinions evolve. A living focus group, not a one-shot run.</p>
       </div>
-      <div class="mini-card">
-        <div class="icon">🔥</div>
-        <h3>Roast Battle</h3>
-        <p>Fans and critics argue each other's experiences. Life bars drain. The weakest arguments die.</p>
+      <div class="next-card">
+        <div class="icon">🌐</div>
+        <h3>Public Thread (Reddit / Discord)</h3>
+        <p>LLM personas post to a real public thread. Real humans can stumble in and reply. Hybrid synthetic + human feedback loop.</p>
       </div>
-      <div class="mini-card">
-        <div class="icon">💼</div>
-        <h3>Investor Verdict</h3>
-        <p>A RAG-powered panel scores your startup on 5 dimensions and gives you a brutal honest assessment.</p>
+      <div class="next-card">
+        <div class="icon">🔬</div>
+        <h3>Real RAG Database</h3>
+        <p>Replace rubric.md with a vector DB of YC post-mortems, Crunchbase outcomes, and App Store retention benchmarks. Grounded in real startup data.</p>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 4: How It Works -->
+  <!-- SLIDE 6: Demo -->
   <div class="slide">
-    <div class="slide-title">HOW IT WORKS</div>
-    <div class="step-list">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-text">
-          <h4>Describe your idea (min 140 chars)</h4>
-          <p>The more specific, the better the simulation. The LLM infers your target audience automatically.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-text">
-          <h4>Casting — 4 synthetic customers are born</h4>
-          <p>Name, age, job, personality, emoji vibe. Decided entirely by the LLM — no archetypes, real people.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-text">
-          <h4>Simulation — 3 months of actual usage</h4>
-          <p>Each persona (different LLM + key) tells their Week 1, Month 1, Month 3 story. Best moment. Worst moment. Would pay.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">4</div>
-        <div class="step-text">
-          <h4>Debate — fans vs skeptics, 10 rounds</h4>
-          <p>Top scorer vs bottom scorer roast each other's experiences. 1–3 damage per hit. Life bars drain 🍗 → 🦴</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">5</div>
-        <div class="step-text">
-          <h4>Verdict — investor panel scores your startup</h4>
-          <p>Survival, Retention, Virality + 5 business criteria + comparable startups + prediction confidence.</p>
-        </div>
-      </div>
+    <span class="chicken">🍗</span>
+    <div class="slide-title" style="margin-bottom:16px;">TRY IT LIVE</div>
+    <div class="url">roast.up.railway.app</div>
+    <hr class="div">
+    <div class="stat-row">
+      <div class="stat"><div class="n">6</div><div class="l">isolated LLMs</div></div>
+      <div class="stat"><div class="n">4</div><div class="l">synthetic users</div></div>
+      <div class="stat"><div class="n">3mo</div><div class="l">simulated</div></div>
+      <div class="stat"><div class="n">10</div><div class="l">debate rounds</div></div>
+      <div class="stat"><div class="n">~60s</div><div class="l">to verdict</div></div>
     </div>
+    <hr class="div">
+    <p style="font-size:0.7rem;color:#3a2510;letter-spacing:2px;text-transform:uppercase;">Built solo · One week · MakersLounge #11</p>
   </div>
 
-  <!-- SLIDE 5: Technical Architecture -->
-  <div class="slide">
-    <div class="slide-title">UNDER THE HOOD</div>
-    <div style="margin-bottom:28px;max-width:700px;text-align:center;">
-      <p style="color:#6b4f30;font-size:0.85rem;letter-spacing:1px;">6 isolated API keys × 4 different LLM models = genuinely independent opinions</p>
-    </div>
-    <div class="model-grid">
-      <div class="model-pill">
-        <div class="role">Persona 1</div>
-        <div class="name">openai/gpt-oss-20b</div>
-        <div class="key">ROAST1 key</div>
-      </div>
-      <div class="model-pill">
-        <div class="role">Persona 2</div>
-        <div class="name">llama-3.1-8b-instant</div>
-        <div class="key">ROAST2 key</div>
-      </div>
-      <div class="model-pill">
-        <div class="role">Persona 3</div>
-        <div class="name">llama-4-scout-17b</div>
-        <div class="key">ROAST3 key</div>
-      </div>
-      <div class="model-pill">
-        <div class="role">Persona 4</div>
-        <div class="name">qwen/qwen3-32b</div>
-        <div class="key">ROAST4 key</div>
-      </div>
-      <div class="model-pill">
-        <div class="role">Casting</div>
-        <div class="name">llama-4-scout-17b</div>
-        <div class="key">CASTING key</div>
-      </div>
-      <div class="model-pill" style="border-color:#ff6a0066;">
-        <div class="role">Judge (RAG)</div>
-        <div class="name" style="color:#ff6a00;">llama-4-scout-17b</div>
-        <div class="key" style="color:#ff6a00;">JUDGE key</div>
-      </div>
-    </div>
-    <div class="tag-row" style="margin-top:28px;">
-      <div class="tag hot">Flask backend</div>
-      <div class="tag hot">Groq API</div>
-      <div class="tag hot">Concurrent futures</div>
-      <div class="tag">Chart.js</div>
-      <div class="tag">RAG via rubric.md</div>
-      <div class="tag">Railway deploy</div>
-      <div class="tag">UUID result storage</div>
-    </div>
+  <!-- Nav -->
+  <div class="nav">
+    <button id="prev" onclick="go(-1)" disabled>← PREV</button>
+    <div class="counter" id="counter">1 / 6</div>
+    <button id="next" onclick="go(1)">NEXT →</button>
   </div>
 
-  <!-- SLIDE 6: What You Get -->
-  <div class="slide">
-    <div class="slide-title">WHAT YOU GET</div>
-    <div class="two-col">
-      <div class="col">
-        <div style="display:flex;flex-direction:column;gap:14px;">
-          <div class="step" style="gap:12px;">
-            <div style="font-size:1.5rem;">📖</div>
-            <div class="step-text"><h4>3-Month User Stories</h4><p>Specific moments, emotional arcs, specific complaints — not generic feedback</p></div>
-          </div>
-          <div class="step" style="gap:12px;">
-            <div style="font-size:1.5rem;">📊</div>
-            <div class="step-text"><h4>Satisfaction Charts</h4><p>Line chart showing each user's arc over time, radar for business dimensions</p></div>
-          </div>
-          <div class="step" style="gap:12px;">
-            <div style="font-size:1.5rem;">💬</div>
-            <div class="step-text"><h4>Roast Debate Transcript</h4><p>10 rounds of customers arguing — reveals what actually matters to them</p></div>
-          </div>
-          <div class="step" style="gap:12px;">
-            <div style="font-size:1.5rem;">🔬</div>
-            <div class="step-text"><h4>Grounded Analysis</h4><p>Prediction confidence %, market category, comparable startups with real outcomes</p></div>
-          </div>
-          <div class="step" style="gap:12px;">
-            <div style="font-size:1.5rem;">📄</div>
-            <div class="step-text"><h4>Downloadable PDF</h4><p>Full results exported — shareable with co-founders, investors, advisors</p></div>
-          </div>
-        </div>
-      </div>
-      <div class="col" style="display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;">
-        <div class="verdict-row" style="flex-direction:column;">
-          <div class="verdict-box v-green">✅ SURVIVES<p>Strong retention signal. Users stick with it.</p></div>
-          <div class="verdict-box v-yellow">⚠️ NEEDS WORK<p>Solid core, weak monetization or retention.</p></div>
-          <div class="verdict-box v-red">💀 DEAD ON ARRIVAL<p>💥 BOOM ROASTED. Here's exactly why.</p></div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="hint">← → NAVIGATE</div>
 
-  <!-- SLIDE 7: Hackathon Fit -->
-  <div class="slide">
-    <div class="badge">TRACK 3: SYNTHETIC CUSTOMERS</div>
-    <div class="slide-title small">WHY THIS FITS</div>
-    <div class="card-row" style="max-width:900px;">
-      <div class="mini-card">
-        <div class="icon">🎯</div>
-        <h3>The Track</h3>
-        <p style="color:#f0e6d0;font-weight:600;margin-bottom:8px;">"Use AI to simulate customer behavior"</p>
-        <p>Every persona is a synthetic customer who actually uses the product for 3 months and forms real opinions.</p>
-      </div>
-      <div class="mini-card">
-        <div class="icon">🔑</div>
-        <h3>Key Differentiator</h3>
-        <p>Not one AI — <strong style="color:#ff6a00;">6 isolated LLMs</strong> with different models and API keys. No shared context. Genuine disagreement.</p>
-      </div>
-      <div class="mini-card">
-        <div class="icon">📈</div>
-        <h3>Real Value</h3>
-        <p>Founders get months of user research in 60 seconds. With charts, debate, and a brutal investor verdict.</p>
-      </div>
-    </div>
-    <hr class="divider" style="margin-top:32px;">
-    <div style="font-size:0.8rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;">Built solo · Flask + Groq · Deployed on Railway · In one night</div>
-  </div>
-
-  <!-- SLIDE 8: Live Demo -->
-  <div class="slide">
-    <span style="font-size:4rem;animation:float 2s ease-in-out infinite;display:block;margin-bottom:20px;">🍗</span>
-    <div class="slide-title">TRY IT LIVE</div>
-    <div class="url-box">roast.up.railway.app</div>
-    <div style="margin-top:32px;text-align:center;color:#4a3020;font-size:0.8rem;letter-spacing:2px;text-transform:uppercase;">Describe your startup idea · Min 140 characters · ~60 seconds</div>
-    <hr class="divider">
-    <div style="display:flex;gap:30px;margin-top:4px;">
-      <div style="text-align:center;">
-        <div style="font-family:'Bangers',cursive;font-size:2rem;color:#ff6a00;">6</div>
-        <div style="font-size:0.65rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;">LLM models</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-family:'Bangers',cursive;font-size:2rem;color:#ff6a00;">4</div>
-        <div style="font-size:0.65rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;">synthetic users</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-family:'Bangers',cursive;font-size:2rem;color:#ff6a00;">10</div>
-        <div style="font-size:0.65rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;">debate rounds</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-family:'Bangers',cursive;font-size:2rem;color:#ff6a00;">3mo</div>
-        <div style="font-size:0.65rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;">simulated</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-family:'Bangers',cursive;font-size:2rem;color:#ff6a00;">~60s</div>
-        <div style="font-size:0.65rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;">to verdict</div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- Navigation -->
-<div class="nav">
-  <button id="prev" onclick="go(-1)" disabled>← PREV</button>
-  <div class="counter" id="counter">1 / 8</div>
-  <button id="next" onclick="go(1)">NEXT →</button>
-</div>
-
-<div class="hint">← → to navigate · ESC to reset</div>
-
-<script>
-  const slides = document.querySelectorAll('.slide');
-  let cur = 0;
-
-  function go(dir) {
-    slides[cur].classList.remove('active');
-    cur = Math.max(0, Math.min(slides.length - 1, cur + dir));
-    slides[cur].classList.add('active');
-    document.getElementById('counter').textContent = `${cur + 1} / ${slides.length}`;
-    document.getElementById('prev').disabled = cur === 0;
-    document.getElementById('next').disabled = cur === slides.length - 1;
-  }
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
-    if (e.key === 'Escape') go(-cur);
-  });
-</script>
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    let cur = 0;
+    function go(d) {
+      slides[cur].classList.remove('active');
+      cur = Math.max(0, Math.min(slides.length - 1, cur + d));
+      slides[cur].classList.add('active');
+      document.getElementById('counter').textContent = `${cur+1} / ${slides.length}`;
+      document.getElementById('prev').disabled = cur === 0;
+      document.getElementById('next').disabled = cur === slides.length - 1;
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
+      if (e.key === 'Escape') go(-cur);
+    });
+  </script>
 </body>
 </html>
