@@ -103,12 +103,25 @@ Return ONLY valid JSON:
     ]
 }}"""
 
-    response = CASTING_CLIENT.chat.completions.create(
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=1.0
-    )
-    data = extract_json(response.choices[0].message.content.strip())
+    fallback_models = [
+        "meta-llama/llama-4-scout-17b-16e-instruct",
+        "llama-3.1-8b-instant",
+        "qwen/qwen3-32b"
+    ]
+    data = None
+    for model in fallback_models:
+        try:
+            response = CASTING_CLIENT.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.9
+            )
+            data = extract_json(response.choices[0].message.content.strip())
+            break
+        except Exception as e:
+            print(f"cast_personas failed with {model}: {e}")
+    if data is None:
+        raise ValueError("Casting failed on all models")
 
     return [
         {
@@ -151,18 +164,30 @@ Return ONLY valid JSON:
     "score": <overall score 0-100>
 }}"""
 
-    response = persona["client"].chat.completions.create(
-        model=persona["model"],
-        messages=[{"role": "user", "content": prompt}],
-        temperature=1.0
-    )
-    data = extract_json(response.choices[0].message.content.strip())
-    if 'score' not in data:
-        sub = [data.get('week1', {}).get('score', 50),
-               data.get('month1', {}).get('score', 50),
-               data.get('month3', {}).get('score', 50)]
-        data['score'] = round(sum(sub) / len(sub))
-    return data
+    for attempt in range(2):
+        try:
+            response = persona["client"].chat.completions.create(
+                model=persona["model"],
+                messages=[{"role": "user", "content": prompt}],
+                temperature=1.0 if attempt == 0 else 0.5
+            )
+            data = extract_json(response.choices[0].message.content.strip())
+            if 'score' not in data:
+                sub = [data.get('week1', {}).get('score', 50),
+                       data.get('month1', {}).get('score', 50),
+                       data.get('month3', {}).get('score', 50)]
+                data['score'] = round(sum(sub) / len(sub))
+            return data
+        except Exception as e:
+            print(f"simulate_usage attempt {attempt+1} failed for {persona['name']}: {e}")
+            if attempt == 1:
+                return {"week1": {"story": "Had a mixed experience.", "score": 50},
+                        "month1": {"story": "Used it occasionally.", "score": 50},
+                        "month3": {"story": "Still around but not a daily habit.", "score": 50},
+                        "best_moment": "When it actually worked well",
+                        "worst_moment": "When it didn't",
+                        "would_pay": "$5/month",
+                        "score": 50}
 
 
 def debate_turn(speaker, target, idea, history, speaker_score, target_score):
@@ -198,12 +223,18 @@ Return ONLY valid JSON:
     "new_score": <your updated score 0-100>
 }}"""
 
-    response = speaker["client"].chat.completions.create(
-        model=speaker["model"],
-        messages=[{"role": "user", "content": prompt}],
-        temperature=1.0
-    )
-    return extract_json(response.choices[0].message.content.strip())
+    for attempt in range(2):
+        try:
+            response = speaker["client"].chat.completions.create(
+                model=speaker["model"],
+                messages=[{"role": "user", "content": prompt}],
+                temperature=1.0 if attempt == 0 else 0.5
+            )
+            return extract_json(response.choices[0].message.content.strip())
+        except Exception as e:
+            print(f"debate_turn attempt {attempt+1} failed for {speaker['name']}: {e}")
+            if attempt == 1:
+                return {"text": "...", "damage": 1, "new_score": speaker_score}
 
 
 def run_debate(personas, idea, reactions, total_exchanges=10):
