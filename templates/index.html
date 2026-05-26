@@ -20,7 +20,6 @@
       color: #f0e6d0;
       font-family: 'Inter', 'Segoe UI', sans-serif;
       min-height: 100vh;
-      padding: 40px 20px;
     }
 
     h1 {
@@ -295,6 +294,7 @@
 </head>
 <body>
 
+  <div id="heroSection" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;">
   <h1 style="cursor:pointer;" onclick="window.location.href='/'"><span class="title-chicken">🍗</span>ROAST</h1>
   <p class="footnote">Let 4 AI customers roast your product idea before your real ones do.</p>
 
@@ -303,6 +303,7 @@
     <div id="charCount" style="text-align:right;font-size:0.75rem;color:#4a3020;margin-top:4px;">0 / 140</div>
     <button id="btn" onclick="startRoast()">🔥 THROW IT ON THE GRILL</button>
   </div>
+  </div><!-- end heroSection -->
 
   <div class="loading" id="loading">
     <div class="pulsing" style="font-size:3rem;">🍗</div>
