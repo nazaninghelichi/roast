@@ -15,12 +15,22 @@
     body {
       background: #0e0a06;
       background-image:
-        radial-gradient(ellipse at 20% 50%, rgba(255,80,0,0.04) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 20%, rgba(255,160,0,0.03) 0%, transparent 50%);
+        radial-gradient(ellipse at 20% 50%, rgba(255,80,0,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(255,160,0,0.04) 0%, transparent 50%);
       color: #f0e6d0;
       font-family: 'Inter', 'Segoe UI', sans-serif;
       min-height: 100vh;
-      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #heroSection {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px 40px;
     }
 
     h1 {
@@ -56,11 +66,28 @@
     }
     .footnote {
       text-align: center;
-      color: #3a2510;
-      margin-bottom: 40px;
-      font-size: 0.8rem;
+      color: #6b4f30;
+      margin-bottom: 32px;
+      font-size: 0.9rem;
       font-style: italic;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-pills {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .stat-pill {
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #4a3020;
+      border: 1px solid #2a1a08;
+      border-radius: 20px;
+      padding: 5px 14px;
     }
 
     .input-section {
@@ -295,13 +322,22 @@
 </head>
 <body>
 
-  <h1 style="cursor:pointer;" onclick="window.location.href='/'"><span class="title-chicken">🍗</span>ROAST</h1>
-  <p class="footnote">Let 4 AI customers roast your product idea before your real ones do.</p>
+  <div id="heroSection">
+    <h1 style="cursor:pointer;" onclick="window.location.href='/'"><span class="title-chicken">🍗</span>ROAST</h1>
+    <p class="footnote">Let 4 AI customers roast your product idea before your real ones do.</p>
 
-  <div class="input-section">
-    <textarea id="idea" placeholder="Describe your product idea... (min 140 characters)" oninput="updateCharCount()"></textarea>
-    <div id="charCount" style="text-align:right;font-size:0.75rem;color:#4a3020;margin-top:4px;">0 / 140</div>
-    <button id="btn" onclick="startRoast()">🔥 THROW IT ON THE GRILL</button>
+    <div class="input-section">
+      <textarea id="idea" placeholder="Describe your product idea... (min 140 characters)" oninput="updateCharCount()"></textarea>
+      <div id="charCount" style="text-align:right;font-size:0.75rem;color:#4a3020;margin-top:4px;">0 / 140</div>
+      <button id="btn" onclick="startRoast()">🔥 THROW IT ON THE GRILL</button>
+    </div>
+
+    <div class="stat-pills">
+      <span class="stat-pill">4 AI customers</span>
+      <span class="stat-pill">3 months simulated</span>
+      <span class="stat-pill">~60 seconds</span>
+      <span class="stat-pill">zero sugarcoating</span>
+    </div>
   </div>
 
   <div class="loading" id="loading">
@@ -344,10 +380,10 @@
     <div class="judge-card" id="judgeCard"></div>
   </div>
 
-  <div style="text-align:center;padding:40px 0 20px;display:flex;justify-content:center;gap:32px;">
-    <a href="/about" style="font-size:0.7rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;text-decoration:none;" onmouseover="this.style.color='#ff6a00'" onmouseout="this.style.color='#4a3020'">ABOUT</a>
-    <a href="/slides" style="font-size:0.7rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;text-decoration:none;" onmouseover="this.style.color='#ff6a00'" onmouseout="this.style.color='#4a3020'">PRESENTATION SLIDES</a>
-    <a href="https://www.linkedin.com/in/nazanin-ghelichi/" target="_blank" style="font-size:0.7rem;color:#4a3020;letter-spacing:2px;text-transform:uppercase;text-decoration:none;" onmouseover="this.style.color='#ff6a00'" onmouseout="this.style.color='#4a3020'">LINKEDIN</a>
+  <div style="text-align:center;padding:24px 0;display:flex;justify-content:center;gap:32px;border-top:1px solid #1a1008;margin-top:40px;">
+    <a href="/about" style="font-size:0.65rem;color:#2a1a08;letter-spacing:2px;text-transform:uppercase;text-decoration:none;" onmouseover="this.style.color='#ff6a00'" onmouseout="this.style.color='#2a1a08'">ABOUT</a>
+    <a href="/slides" style="font-size:0.65rem;color:#2a1a08;letter-spacing:2px;text-transform:uppercase;text-decoration:none;" onmouseover="this.style.color='#ff6a00'" onmouseout="this.style.color='#2a1a08'">PRESENTATION SLIDES</a>
+    <a href="https://www.linkedin.com/in/nazanin-ghelichi/" target="_blank" style="font-size:0.65rem;color:#2a1a08;letter-spacing:2px;text-transform:uppercase;text-decoration:none;" onmouseover="this.style.color='#ff6a00'" onmouseout="this.style.color='#2a1a08'">LINKEDIN</a>
   </div>
 
   <!-- Dramatic popup -->
