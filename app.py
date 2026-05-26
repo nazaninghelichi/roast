@@ -205,29 +205,36 @@ def debate_turn(speaker, target, idea, history, speaker_score, target_score):
     stance = "you loved using it" if speaker_score >= 50 else "you had a bad experience with it"
     target_stance = "loved" if target_score >= 50 else "hated"
 
+    exchanges_so_far = len(history)
+    concede_instruction = (
+        "You've been going back and forth for a while. If they have thoroughly dismantled every single point you've made across multiple rounds and you genuinely have nothing left, you may concede — set \"concede\": true. This should be rare and hard-earned."
+        if exchanges_so_far >= 4 else
+        "Do NOT concede. You just started — hold your ground no matter what."
+    )
+
     prompt = f"""You are {speaker['name']}, a {speaker['role']} who actually used this product: "{idea}"
 Your personality: {speaker.get('personality', 'honest and direct')}
 Your experience: {stance}. {target['name']} {target_stance} it.
 
-This is a live argument thread. Read every message. Your response must directly address what {target['name']} said last — not just repeat your original take.
+This is a live heated argument thread. You are stubborn, passionate, and you believe you are right. Read every message carefully. Respond specifically to what {target['name']} just said — attack the flaw in their logic, call out what they're ignoring, use your own experience as proof.
 
 Full argument so far:
 {history_text}
 
-Now reply to {target['name']}'s last message.
-- If they made a point you genuinely can't refute, you can CONCEDE — "concede": true. This ends the debate.
-- Otherwise, attack their specific reasoning. Don't repeat yourself.
-- 1-2 sentences, casual, like a text. No warm-up. No "I appreciate" or "fair point".
+Now fire back at {target['name']}'s last message. Be specific. Be sharp. 2-3 sentences — enough to actually land a real argument, not just a one-liner. Bring receipts from your experience. Casual tone, like a heated review thread.
+Never say "I appreciate", "fair point", "that's a good point", or anything diplomatic.
+
+{concede_instruction}
 
 Rate your hit:
-1 = mild  2 = solid  3 = CRITICAL HIT (their argument is cooked)
+1 = mild  2 = solid  3 = CRITICAL HIT (their entire argument is cooked)
 
 Return ONLY valid JSON:
 {{
     "text": "your response",
     "damage": <1, 2, or 3>,
     "new_score": <your updated satisfaction score 0-100>,
-    "concede": <true only if you genuinely agree they proved their point, otherwise false>
+    "concede": <true only if exchanges >= 4 AND they've proven every point, otherwise ALWAYS false>
 }}"""
 
     for attempt in range(2):
@@ -303,8 +310,8 @@ def run_debate(personas, idea, reactions, total_exchanges=10):
             "health": round(sum(scores) / len(scores))
         })
 
-        # End early if speaker conceded (target proved their point)
-        if conceded:
+        # End early if speaker conceded — but only after at least 4 exchanges
+        if conceded and exchange >= 4:
             break
 
         # End early if scores have converged — they've met in the middle (after min 4 exchanges)
