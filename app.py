@@ -196,7 +196,7 @@ Return ONLY valid JSON:
                         "score": 50}
 
 
-def debate_turn(speaker, target, idea, history, speaker_score, target_score):
+def debate_turn(speaker, target, idea, history, speaker_score, target_score, speaker_reaction=None, target_reaction=None):
     history_text = "\n".join([
         f"{h['speaker']}: {h['text']}"
         for h in history
@@ -204,6 +204,21 @@ def debate_turn(speaker, target, idea, history, speaker_score, target_score):
 
     stance = "you loved using it" if speaker_score >= 50 else "you had a bad experience with it"
     target_stance = "loved" if target_score >= 50 else "hated"
+
+    sr = speaker_reaction or {}
+    tr = target_reaction or {}
+
+    speaker_context = f"""Your actual 3-month experience:
+- Story: {sr.get('story', 'You used the product for 3 months.')}
+- Best moment: {sr.get('best_moment', 'N/A')}
+- Worst moment: {sr.get('worst_moment', 'N/A')}
+- Your main complaint: {sr.get('complaints', ['N/A'])[0] if sr.get('complaints') else 'N/A'}"""
+
+    target_context = f"""What you know about {target['name']}'s experience:
+- Their story: {tr.get('story', '')}
+- Their best moment: {tr.get('best_moment', '')}
+- Their worst moment: {tr.get('worst_moment', '')}
+- Their complaint: {tr.get('complaints', [''])[0] if tr.get('complaints') else ''}"""
 
     exchanges_so_far = len(history)
     concede_instruction = (
@@ -214,14 +229,18 @@ def debate_turn(speaker, target, idea, history, speaker_score, target_score):
 
     prompt = f"""You are {speaker['name']}, a {speaker['role']} who actually used this product: "{idea}"
 Your personality: {speaker.get('personality', 'honest and direct')}
-Your experience: {stance}. {target['name']} {target_stance} it.
+Overall: {stance}.
 
-This is a live heated argument thread. You are stubborn, passionate, and you believe you are right. Read every message carefully. Respond specifically to what {target['name']} just said — attack the flaw in their logic, call out what they're ignoring, use your own experience as proof.
+{speaker_context}
+
+{target_context}
+
+This is a live heated argument thread. You are stubborn, passionate, and you believe you are right. Reference your specific experiences — your best moment, your worst moment, what actually happened to you. Call out the gaps in {target['name']}'s story. Use your personal receipts as ammunition.
 
 Full argument so far:
 {history_text}
 
-Now fire back at {target['name']}'s last message. Be specific. Be sharp. 2-3 sentences — enough to actually land a real argument, not just a one-liner. Bring receipts from your experience. Casual tone, like a heated review thread.
+Now fire back at {target['name']}'s last message. Be personal, be specific, be sharp. 2-3 sentences. Casual tone like a heated review thread. Reference real moments from your experience.
 Never say "I appreciate", "fair point", "that's a good point", or anything diplomatic.
 
 {concede_instruction}
@@ -282,7 +301,8 @@ def run_debate(personas, idea, reactions, total_exchanges=10):
         speaker = personas[speaker_idx]
         target = personas[target_idx]
 
-        result = debate_turn(speaker, target, idea, history, scores[speaker_idx], scores[target_idx])
+        result = debate_turn(speaker, target, idea, history, scores[speaker_idx], scores[target_idx],
+                             speaker_reaction=reactions[speaker_idx], target_reaction=reactions[target_idx])
         damage = max(1, min(3, int(result.get('damage', 1))))
         conceded = bool(result.get('concede', False))
         lives[target['name']] = max(0, lives[target['name']] - damage)
