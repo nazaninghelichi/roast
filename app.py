@@ -245,7 +245,7 @@ Return ONLY valid JSON:
 
 
 def run_debate(personas, idea, reactions, total_exchanges=10):
-    scores = [r.get('score', 50) for r in reactions]
+    scores = [int(r.get('score', 50)) for r in reactions]
     lives = {p['name']: 10 for p in personas}
     history = []
     round_snapshots = []
